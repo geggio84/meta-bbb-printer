@@ -1,0 +1,25 @@
+From a4675dadfc2b1ab5fa7fb261b6b59989ea790e88 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sun, 13 Dec 2015 17:03:03 +0100
+Subject: [PATCH 09/11] defconfig: Add missing PCA9685 driver
+
+---
+ arch/arm/configs/beaglebone_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/beaglebone_defconfig b/arch/arm/configs/beaglebone_defconfig
+index d37a33d..61c8cd8 100644
+--- a/arch/arm/configs/beaglebone_defconfig
++++ b/arch/arm/configs/beaglebone_defconfig
+@@ -4154,7 +4154,7 @@ CONFIG_TI_AM335X_ADC=y
+ CONFIG_PWM=y
+ CONFIG_PWM_SYSFS=y
+ # CONFIG_PWM_FSL_FTM is not set
+-# CONFIG_PWM_PCA9685 is not set
++CONFIG_PWM_PCA9685=y
+ CONFIG_PWM_TIECAP=y
+ CONFIG_PWM_TIEHRPWM=y
+ CONFIG_PWM_TIPWMSS=y
+-- 
+1.9.1
+

@@ -1,0 +1,27 @@
+From 7e0353957ab948d67cb05f539de29aee22cf08ec Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 23 Nov 2015 23:33:15 +0100
+Subject: [PATCH 06/11] Fix device tree SPI entry
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index cb40b60..d57b409 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -498,8 +498,8 @@
+ 	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi0_pins>;
+-	ti,spi-num-cs = <5>;
+-	num-chipselects = <5>;
++	ti,spi-num-cs = <1>;
++	num-chipselects = <4>;
+ 	cs-gpios = <0>, <&gpio0 13 0>, <&gpio0 12 0>, <&gpio1 17 0>, <&gpio3 21 0>;
+ 	dmas = <&edma 16
+ 			&edma 17
+-- 
+1.9.1
+

@@ -1,0 +1,25 @@
+From 593fe703baba9ec583985f54aae7fe491e434700 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 23 Nov 2015 23:33:33 +0100
+Subject: [PATCH 07/11] Fix Touchscreen IRQ
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index d57b409..d85f4b1 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -522,7 +522,7 @@
+ 		pinctrl-0 = <&XPT2046_pins>;
+ 	
+ 		interrupt-parent = <&gpio1>;
+-		interrupts = <29>;
++		interrupts = <29 0>;
+ 		pendown-gpio = <&gpio1 29 0>;
+ 		ti,pendown-gpio-debounce = <50>;
+ 	
+-- 
+1.9.1
+

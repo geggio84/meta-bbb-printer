@@ -1,0 +1,102 @@
+From d005742cf63af9b90fb64e23732b64e93697f7d9 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sun, 22 Nov 2015 22:19:55 +0100
+Subject: [PATCH 04/11] Fix some device tree entries
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 23 +++++++++++++++++++----
+ arch/arm/boot/dts/am335x-boneblack.dts    |  7 +++++--
+ 2 files changed, 24 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 2c781f2..cb40b60 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -66,7 +66,7 @@
+ 		regulator-max-microvolt = <3300000>;
+ 	};
+ 
+-	vin: fixedregulator@0 {
++	vin: fixedregulator@1 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vin";
+ 		regulator-min-microvolt = <5000000>;
+@@ -157,9 +157,8 @@
+ 		pinctrl-0 = <&pwm_bl_pins>;
+ 
+ 		pwms = <&ehrpwm1 0 500000 0>;
+-		pwm-names = "LCD4_backlight";
+-		brightness-levels = <0 4 8 16 32 64 128 255>;
+-		default-brightness-level = <7>;
++		brightness-levels = <0 58 61 66 75 90 125 170 255>;
++		default-brightness-level = <8>;
+ 		status = "okay";
+ 	};
+ 
+@@ -599,6 +598,9 @@
+ 	 */
+ 	ti,pmic-shutdown-controller;
+ 
++	interrupt-parent = <&intc>;
++	interrupts = <7>;	/* NNMI */
++
+ 	regulators {
+ 		dcdc1_reg: regulator@0 {
+ 			regulator-name = "vdds_dpr";
+@@ -687,6 +689,19 @@
+ 	status = "okay";
+ };
+ 
++&edma {
++	ti,edma-xbar-event-map = <32 12>,	/* gpevt2 -> 12 */
++							<30 20>;	/* xdma_event_intr2 -> 20 */
++};
++
++&epwmss1 {
++	status = "okay";
++};
++
++&ehrpwm1 {
++	status = "okay";
++};
++
+ &wkup_m3_ipc {
+ 	ti,scale-data-fw = "am335x-bone-scale-data.bin";
+ };
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index af840d1..e500738 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -92,10 +92,12 @@
+ };
+ 
+ &lcdc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&lcd_pins>;
+ 	status = "okay";
+ 	u-boot-config;
+ 	fb-baseaddr = <0x9FC00000>;
+-	fb-size-MB = <4>;
++	fb-size-MB = <0x00000004>;
+ 	display-timings {
+ 		480x272p57 {
+ 			clock-frequency = <9000000>;
+@@ -117,7 +119,7 @@
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&mcasp0_pins>;
+ 	pinctrl-1 = <&mcasp0_pins_sleep>;
+-	status = "okay";
++	status = "disabled";
+ 	op-mode = <0>;	/* MCASP_IIS_MODE */
+ 	tdm-slots = <2>;
+ 	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+@@ -164,5 +166,6 @@
+ 			"HDMI Out",	"TX";
+ 		clocks = <&clk_mcasp0>;
+ 		clock-names = "mclk";
++		status = "disabled";
+ 	};
+ };
+-- 
+1.9.1
+
