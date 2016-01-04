@@ -1,0 +1,103 @@
+From 48c63f54941ee21f539f290546055d78acc67c80 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Tue, 8 Dec 2015 22:03:34 +0100
+Subject: [PATCH 15/15] Add minimal support for PWM Backlight with fixed duty
+ cycle
+
+---
+ board/ti/am335x/board.c | 49 +++++++++++++++++++++++--------------------------
+ board/ti/am335x/mux.c   |  2 +-
+ 2 files changed, 24 insertions(+), 27 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index 5b47287..d31af0c 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -190,12 +190,6 @@ static int set_gpio(int gpio, int state)
+ }
+ 
+ #if defined(CONFIG_VIDEO)
+-static int enable_backlight(void)
+-{
+-	set_gpio(50, 1); // GPIO1_18
+-	return 0;
+-}
+-
+ static int enable_lcd(void)
+ {
+ 	set_gpio(115, 1); // GPIO3_19
+@@ -204,26 +198,30 @@ static int enable_lcd(void)
+ 
+ static int enable_pwm(void)
+ {
+-	struct pwmss_regs *pwmss = (struct pwmss_regs *)PWMSS0_BASE;
+-	struct pwmss_ecap_regs *ecap;
+-	int ticks = PWM_TICKS;
+-	int duty = PWM_DUTY;
++	struct pwmss_regs *pwmss = (struct pwmss_regs *)PWMSS1_BASE;
++	struct epwm_regs *epwm;
++	struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
++	unsigned int *pwmss_ctrl = (unsigned int*)0x44E10664;
+ 
+-	ecap = (struct pwmss_ecap_regs *)AM33XX_ECAP0_BASE;
++	setbits_le32(pwmss_ctrl, BIT(1));
++
++	/* Enable PWM1 ss */
++	writel(0x2, &cmper->epwmss1clkctrl);
++
++	epwm = (struct epwm_regs *)AM33XX_EPWM1_BASE;
+ 	/* enable clock */
+-	setbits_le32(&pwmss->clkconfig, ECAP_CLK_EN);
+-	/* TimeStam Counter register */
+-	writel(0xdb9, &ecap->tsctr);
+-	/* config period */
+-	writel(ticks - 1, &ecap->cap3);
+-	writel(ticks - 1, &ecap->cap1);
+-	setbits_le16(&ecap->ecctl2,
+-		     (ECTRL2_MDSL_ECAP | ECTRL2_SYNCOSEL_MASK | 0xd0));
+-	/* config duty */
+-	writel(duty, &ecap->cap2);
+-	writel(duty, &ecap->cap4);
+-	/* start */
+-	setbits_le16(&ecap->ecctl2, ECTRL2_CTRSTP_FREERUN);
++	setbits_le32(&pwmss->clkconfig, EPWM_CLK_EN);
++	/* Configure the PWM actions */
++	writew(0x001A, &epwm->aqctla);
++	/* TimeBase Period register */
++	writew(0xC350, &epwm->tbprd);
++
++	/* Config Duty Cycle */
++	writew(0x3971, &epwm->cmpa);
++
++	/* Start */
++	writew(0xC000, &epwm->tbctl);
++
+ 	return 0;
+ }
+ #endif
+@@ -758,8 +756,7 @@ int board_late_init(void)
+ 
+ #if defined(CONFIG_VIDEO)
+ 	setenv("stdout", "serial");
+-	//enable_pwm();
+-	enable_backlight();
++	enable_pwm();
+ #endif
+ 
+ 	// Check if we are booting form uSD or recovery button pressed
+diff --git a/board/ti/am335x/mux.c b/board/ti/am335x/mux.c
+index c350e42..9a9ecb2 100644
+--- a/board/ti/am335x/mux.c
++++ b/board/ti/am335x/mux.c
+@@ -295,7 +295,7 @@ static struct module_pin_mux LCD_pin_mux[] = {
+ 	{OFFSET(lcd_pclk), MODE(0) },       /* lcd_pclk */
+ 	{OFFSET(lcd_ac_bias_en), MODE(0) }, /* lcd_en */
+ 	{OFFSET(mcasp0_fsr), (MODE(7) | PULLUP_EN | RXACTIVE)}, /*LCD DISEN*/
+-	{OFFSET(gpmc_a2), MODE(7) | PULLDOWN_EN | RXACTIVE},
++	{OFFSET(gpmc_a2), MODE(6) | PULLDOWN_EN | RXACTIVE},
+ 	{-1},
+ };
+ #endif
+-- 
+1.9.1
+

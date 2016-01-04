@@ -1,0 +1,52 @@
+From b7d8097fdc08a8003680560127bf4bd0a8926cb7 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 4 Nov 2015 22:52:21 +0100
+Subject: [PATCH 09/15] Fix LCD initialization on board init function
+
+---
+ board/ti/am335x/board.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index e21cf00..25e3242 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -693,6 +693,18 @@ unsigned long fb_mem_baseaddr;
+  */
+ int board_init(void)
+ {
++	__maybe_unused struct am335x_baseboard_id header;
++
++#if defined(CONFIG_VIDEO)
++	if(board_is_bone(&header))
++		VIDEO_DA8XX_FB_MEMADDR = (((256*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
++	else
++		VIDEO_DA8XX_FB_MEMADDR = (((512*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
++	conf_disp_pll(24, 1);
++	da8xx_video_init(&lcd_panel, &lcd_cfg, 32);
++	enable_lcd();
++#endif
++
+ #if defined(CONFIG_HW_WATCHDOG)
+ 	hw_watchdog_init();
+ #endif
+@@ -724,16 +736,6 @@ int board_late_init(void)
+ 	setenv("board_rev", safe_string);
+ #endif
+ 
+-#if defined(CONFIG_VIDEO)
+-	if(board_is_bone(&header))
+-		VIDEO_DA8XX_FB_MEMADDR = (((256*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
+-	else
+-		VIDEO_DA8XX_FB_MEMADDR = (((512*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
+-	conf_disp_pll(24, 1);
+-	da8xx_video_init(&lcd_panel, &lcd_cfg, 32);
+-	enable_lcd();
+-#endif
+-
+ 	// Enable Power-ON led
+ 	set_gpio(48, 1); // gpio1_16
+ 
+-- 
+1.9.1
+

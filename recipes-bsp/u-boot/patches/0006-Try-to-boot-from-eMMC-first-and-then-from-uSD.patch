@@ -1,0 +1,53 @@
+From 0607eac68018038a52a33fe10dd13ae49f50175e Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 4 Nov 2015 22:48:48 +0100
+Subject: [PATCH 06/15] Try to boot from eMMC first and then from uSD
+
+---
+ include/configs/am335x_evm.h      | 6 +++---
+ include/configs/ti_armv7_common.h | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 13edc43..6d29de6 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -101,7 +101,7 @@ extern unsigned long fb_mem_baseaddr;
+ 	DEFAULT_MMC_TI_ARGS \
+ 	SPLASH_ARGS \
+ 	"boot_fdt=try\0" \
+-	"bootpart=0:2\0" \
++	"bootpart=1:1\0" \
+ 	"bootdir=\0" \
+ 	"bootfile=zImage\0" \
+ 	"fdtfile=undefined\0" \
+@@ -195,8 +195,8 @@ extern unsigned long fb_mem_baseaddr;
+ #define CONFIG_BOOTCOMMAND \
+ 	"run findfdt; " \
+ 	"run mmcboot;" \
+-	"setenv mmcdev 1; " \
+-	"setenv bootpart 1:2; " \
++	"setenv mmcdev 0; " \
++	"setenv bootpart 0:1; " \
+ 	"run mmcboot;" \
+ 	"run nandboot;"
+ 
+diff --git a/include/configs/ti_armv7_common.h b/include/configs/ti_armv7_common.h
+index 3def61a..7287a2d 100644
+--- a/include/configs/ti_armv7_common.h
++++ b/include/configs/ti_armv7_common.h
+@@ -59,9 +59,9 @@
+ 	"bootm_size=0x10000000\0"
+ 
+ #define DEFAULT_MMC_TI_ARGS \
+-	"mmcdev=0\0" \
++	"mmcdev=1\0" \
+ 	"mmcrootfstype=ext4 rootwait\0" \
+-	"finduuid=part uuid mmc 0:2 uuid\0" \
++	"finduuid=part uuid mmc 1:2 uuid\0" \
+ 	"args_mmc=run finduuid;setenv bootargs console=${console} " \
+ 		"${optargs} " \
+ 		"root=PARTUUID=${uuid} rw " \
+-- 
+1.9.1
+

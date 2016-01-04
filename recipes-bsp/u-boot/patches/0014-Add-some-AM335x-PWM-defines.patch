@@ -1,0 +1,84 @@
+From 39ea9c2db0a31d0b97dd575dfdfa61d94d61dfcd Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Tue, 8 Dec 2015 22:02:49 +0100
+Subject: [PATCH 14/15] Add some AM335x PWM defines
+
+---
+ arch/arm/include/asm/arch-am33xx/cpu.h             | 38 ++++++++++++++++++++++
+ arch/arm/include/asm/arch-am33xx/hardware_am33xx.h |  5 +++
+ 2 files changed, 43 insertions(+)
+
+diff --git a/arch/arm/include/asm/arch-am33xx/cpu.h b/arch/arm/include/asm/arch-am33xx/cpu.h
+index 13a9cad..c66d4b4 100644
+--- a/arch/arm/include/asm/arch-am33xx/cpu.h
++++ b/arch/arm/include/asm/arch-am33xx/cpu.h
+@@ -577,6 +577,8 @@ struct pwmss_regs {
+ };
+ #define ECAP_CLK_EN		BIT(0)
+ #define ECAP_CLK_STOP_REQ	BIT(1)
++#define EPWM_CLK_EN		BIT(8)
++#define EPWM_CLK_STOP_REQ	BIT(9)
+ 
+ struct pwmss_ecap_regs {
+ 	unsigned int tsctr;
+@@ -590,6 +592,42 @@ struct pwmss_ecap_regs {
+ 	unsigned short ecctl2;
+ };
+ 
++struct epwm_regs {
++	u16 tbctl;
++	u16 tbsts;
++	u16 tbphshr;
++	u16 tbphs;
++	u16 tbcnt;
++	u16 tbprd;
++	u16 rsv1;
++	u16 cmpctl;
++	u16 cmpahr;
++	u16 cmpa;
++	u16 cmpb;
++	u16 aqctla;
++	u16 aqctlb;
++	u16 aqsfrc;
++	u16 aqcsfrc;
++	u16 dbctl;
++	u16 dbred;
++	u16 dbfed;
++	u16 tzsel;
++	u16 rsv2;
++	u16 tzctl;
++	u16 tzeint;
++	u16 tzflg;
++	u16 tzclr;
++	u16 tzfrc;
++	u16 etsel;
++	u16 etps;
++	u16 etflg;
++	u16 etclr;
++	u16 etfrc;
++	u16 pcctl;
++	u16 rsv3[65];
++	u16 hrcnfg;
++};
++
+ /* Capture Control register 2 */
+ #define ECTRL2_SYNCOSEL_MASK	(0x03 << 6)
+ #define ECTRL2_MDSL_ECAP	BIT(9)
+diff --git a/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h b/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
+index d1aed58..c90398b 100644
+--- a/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
++++ b/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
+@@ -67,5 +67,10 @@
+ /* PWMSS */
+ #define PWMSS0_BASE			0x48300000
+ #define AM33XX_ECAP0_BASE		0x48300100
++#define AM33XX_EPWM0_BASE		0x48300200
++
++#define PWMSS1_BASE			0x48302000
++#define AM33XX_ECAP1_BASE		0x48302100
++#define AM33XX_EPWM1_BASE		0x48302200
+ 
+ #endif /* __AM33XX_HARDWARE_AM33XX_H */
+-- 
+1.9.1
+

@@ -1,0 +1,78 @@
+From 8bc7df80b31dfdb0bfe0f4bdf80fa36c7acf66de Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2015 23:23:16 +0100
+Subject: [PATCH 04/15] Add bbb-printer pin mux
+
+---
+ board/ti/am335x/mux.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/board/ti/am335x/mux.c b/board/ti/am335x/mux.c
+index 56efe02..c350e42 100644
+--- a/board/ti/am335x/mux.c
++++ b/board/ti/am335x/mux.c
+@@ -57,6 +57,41 @@ static struct module_pin_mux uart5_pin_mux[] = {
+ 	{-1},
+ };
+ 
++static struct module_pin_mux stepper_pin_mux[] = {
++	{OFFSET(gpmc_ad13), (MODE(7) | PULLDOWN_EN)},	/* DIR X (gpio1_13) */
++	{OFFSET(gpmc_ad12), (MODE(7) | PULLDOWN_EN)},	/* STEP X (gpio1_12) */
++	{OFFSET(mcasp0_axr1), (MODE(7) | PULLDOWN_EN)},	/* DIR Y (gpio3_20) */
++	{OFFSET(mcasp0_aclkr), (MODE(7) | PULLDOWN_EN)},	/* STEP Y (gpio3_18) */
++	{OFFSET(gpmc_ad9), (MODE(7) | PULLDOWN_EN)},	/* DIR Z (gpio0_23) */
++	{OFFSET(gpmc_ad10), (MODE(7) | PULLDOWN_EN)},	/* STEP Z (gpio0_26) */
++	{OFFSET(gpmc_ad15), (MODE(7) | PULLDOWN_EN)},	/* DIR E (gpio1_15) */
++	{OFFSET(gpmc_ad14), (MODE(7) | PULLDOWN_EN)},	/* STEP E (gpio1_14) */
++	{OFFSET(gpmc_clk), (MODE(7) | PULLDOWN_EN)},	/* FLAG (gpio2_1) */
++	{-1},
++};
++
++static struct module_pin_mux endstop_pin_mux[] = {
++	{OFFSET(gpmc_advn_ale), (MODE(7) | RXACTIVE)},		/* END X1 (gpio2_2) */
++	{OFFSET(gpmc_oen_ren), (MODE(7) | RXACTIVE)},		/* END X2 (gpio2_3) */
++	{OFFSET(gpmc_be0n_cle), (MODE(7) | RXACTIVE)},		/* END Y1 (gpio2_5) */
++	{OFFSET(gpmc_wen), (MODE(7) | RXACTIVE)},		/* END Y2 (gpio2_4) */
++	{OFFSET(gpmc_a3), (MODE(7) | RXACTIVE)},		/* END Z1 (gpio1_19) */
++	{-1},
++};
++
++static struct module_pin_mux frontpanel_pin_mux[] = {
++	{OFFSET(gpmc_wait0), (RXACTIVE | MODE(7))},		/* ENC_SW (gpio0_30) */
++	{OFFSET(gpmc_be1n), (RXACTIVE | MODE(7))},		/* ENC_A (gpio1_28) */
++	{OFFSET(gpmc_wpn), (RXACTIVE | MODE(7))},		/* ENC_B (gpio0_31) */
++	{OFFSET(gpmc_a0), (RXACTIVE | MODE(7))},		/* EXT_GPIO0 (gpio1_16) */
++	{-1},
++};
++
++static struct module_pin_mux HDMI_en_clk_pin_mux[] = {
++	{OFFSET(gpmc_a11), (MODE(7) | PULLDOWN_EN)},		/* HDMICLK_DISn (gpio1_27) */
++	{-1},
++};
++
+ static struct module_pin_mux mmc0_pin_mux[] = {
+ 	{OFFSET(mmc0_dat3), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT3 */
+ 	{OFFSET(mmc0_dat2), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT2 */
+@@ -403,4 +438,19 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
+ #if defined(CONFIG_VIDEO)
+ 	configure_module_pin_mux(LCD_pin_mux);
+ #endif
++
++	/* SPI0 */
++	configure_module_pin_mux(spi0_pin_mux);
++
++	/* GPIO Stepper */
++	configure_module_pin_mux(stepper_pin_mux);
++
++	/* GPIO endstops */
++	configure_module_pin_mux(endstop_pin_mux);
++
++	/* FRONTPANEL */
++	configure_module_pin_mux(frontpanel_pin_mux);
++
++	/* Disable HDMI_CLK */
++	configure_module_pin_mux(HDMI_en_clk_pin_mux);
+ }
+-- 
+1.9.1
+

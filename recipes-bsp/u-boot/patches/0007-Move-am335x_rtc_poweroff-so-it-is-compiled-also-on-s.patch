@@ -1,0 +1,127 @@
+From edcd16be3a5da29acef0b5db8355a46d7f0073b4 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 4 Nov 2015 22:50:07 +0100
+Subject: [PATCH 07/15] Move am335x_rtc_poweroff so it is compiled also on
+ second stage
+
+---
+ board/ti/am335x/board.c | 96 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 48 insertions(+), 48 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index f8adb90..7926a95 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -227,6 +227,54 @@ static int enable_pwm(void)
+ }
+ #endif
+ 
++void am335x_rtc_poweroff(void) {
++	int reg_val;
++	struct rtc_time tm;
++
++	if (tps65217_reg_write(TPS65217_PROT_LEVEL_NONE, TPS65217_STATUS, 0x80, 0x80))
++		puts("tps65217_reg_write failure\n");
++
++	/* Set the Power Enable PMIC*/
++	reg_val=readl(0x44e3e000 + 0x98);
++	writel(reg_val | 0x10000, (0x44e3e000 + 0x98)); // Enable PWR_ENABLE_BIT
++	/* Rather than play the roll over game, just wait an extra second */
++	do {
++		/* Wait unit the busy bit is cleared.  Max 15 uS */
++		while(readl(0x44e3e000 + 0x44) & 0x1) {
++		}
++
++		/* Read the current time, convert from binary */
++		tm.tm_sec = bcd2bin(readb(0x44e3e000 + 0x00));
++		tm.tm_min = bcd2bin(readb(0x44e3e000 + 0x04));
++		tm.tm_hour = bcd2bin(readb(0x44e3e000 + 0x08));
++		tm.tm_mday = bcd2bin(readb(0x44e3e000 + 0x0C));
++		tm.tm_mon = bcd2bin(readb(0x44e3e000 + 0x10));
++		tm.tm_year = bcd2bin(readb(0x44e3e000 + 0x14));
++
++		if (59 == tm.tm_sec) {
++			mdelay(100);
++		}
++
++	} while (59 == tm.tm_sec);
++
++	tm.tm_sec++;
++
++	/* Write the Alarm 2 Register with the shutdown time */
++	writeb(bin2bcd(tm.tm_sec), 0x44e3e000 + 0x80);
++	writeb(bin2bcd(tm.tm_min), 0x44e3e000 + 0x84);
++	writeb(bin2bcd(tm.tm_hour), 0x44e3e000 + 0x88);
++	writeb(bin2bcd(tm.tm_mday), 0x44e3e000 + 0x8C);
++	writeb(bin2bcd(tm.tm_mon), 0x44e3e000 + 0x90);
++	writeb(bin2bcd(tm.tm_year), 0x44e3e000 + 0x94);
++
++	/* Enable the Alarm 2 Interrupt */
++	reg_val=readl(0x44e3e000 + 0x48);
++	writel(reg_val | 0x10, (0x44e3e000 + 0x48)); // Enable Alarm2 interrupt once
++
++	/* Power is being pulled */
++	while(1);
++}
++
+ #ifndef CONFIG_SKIP_LOWLEVEL_INIT
+ static const struct ddr_data ddr2_data = {
+ 	.datardsratio0 = MT47H128M16RT25E_RD_DQS,
+@@ -363,54 +411,6 @@ const struct dpll_params dpll_ddr_evm_sk = {
+ const struct dpll_params dpll_ddr_bone_black = {
+ 		400, OSC-1, 1, -1, -1, -1, -1};
+ 
+-void am335x_rtc_poweroff(void) {
+-	int reg_val;
+-	struct rtc_time tm;
+-
+-	if (tps65217_reg_write(TPS65217_PROT_LEVEL_NONE, TPS65217_STATUS, 0x80, 0x80))
+-		puts("tps65217_reg_write failure\n");
+-
+-	/* Set the Power Enable PMIC*/
+-	reg_val=readl(0x44e3e000 + 0x98);
+-	writel(reg_val | 0x10000, (0x44e3e000 + 0x98)); // Enable PWR_ENABLE_BIT
+-	/* Rather than play the roll over game, just wait an extra second */
+-	do {
+-		/* Wait unit the busy bit is cleared.  Max 15 uS */
+-		while(readl(0x44e3e000 + 0x44) & 0x1) {
+-		}
+-
+-		/* Read the current time, convert from binary */
+-		tm.tm_sec = bcd2bin(readb(0x44e3e000 + 0x00));
+-		tm.tm_min = bcd2bin(readb(0x44e3e000 + 0x04));
+-		tm.tm_hour = bcd2bin(readb(0x44e3e000 + 0x08));
+-		tm.tm_mday = bcd2bin(readb(0x44e3e000 + 0x0C));
+-		tm.tm_mon = bcd2bin(readb(0x44e3e000 + 0x10));
+-		tm.tm_year = bcd2bin(readb(0x44e3e000 + 0x14));
+-
+-		if (59 == tm.tm_sec) {
+-			mdelay(100);
+-		}
+-
+-	} while (59 == tm.tm_sec);
+-
+-	tm.tm_sec++;
+-
+-	/* Write the Alarm 2 Register with the shutdown time */
+-	writeb(bin2bcd(tm.tm_sec), 0x44e3e000 + 0x80);
+-	writeb(bin2bcd(tm.tm_min), 0x44e3e000 + 0x84);
+-	writeb(bin2bcd(tm.tm_hour), 0x44e3e000 + 0x88);
+-	writeb(bin2bcd(tm.tm_mday), 0x44e3e000 + 0x8C);
+-	writeb(bin2bcd(tm.tm_mon), 0x44e3e000 + 0x90);
+-	writeb(bin2bcd(tm.tm_year), 0x44e3e000 + 0x94);
+-
+-	/* Enable the Alarm 2 Interrupt */
+-	reg_val=readl(0x44e3e000 + 0x48);
+-	writel(reg_val | 0x10, (0x44e3e000 + 0x48)); // Enable Alarm2 interrupt once
+-
+-	/* Power is being pulled */
+-	while(1);
+-}
+-
+ void am33xx_spl_board_init(void)
+ {
+ 	struct am335x_baseboard_id header;
+-- 
+1.9.1
+

@@ -1,0 +1,87 @@
+From 584ef9e69fcb0693eaeb8f390a996fc2394af2a0 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sun, 22 Nov 2015 22:41:30 +0100
+Subject: [PATCH 11/15] Fix Video init on beaglebone
+
+---
+ board/ti/am335x/board.c      | 24 +++++++++++++++++++-----
+ include/configs/am335x_evm.h |  7 +++++--
+ 2 files changed, 24 insertions(+), 7 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index f31e355..7832fd8 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -694,15 +694,15 @@ unsigned long fb_mem_baseaddr;
+ int board_init(void)
+ {
+ 	__maybe_unused struct am335x_baseboard_id header;
+-	__maybe_unused char addr[10];
++
++	if (read_eeprom(&header) < 0)
++		puts("Could not get board ID.\n");
+ 
+ #if defined(CONFIG_VIDEO)
+ 	if(board_is_bone(&header))
+ 		VIDEO_DA8XX_FB_MEMADDR = (((256*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
+ 	else
+ 		VIDEO_DA8XX_FB_MEMADDR = (((512*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
+-	sprintf(addr,"0x%lX",VIDEO_DA8XX_FB_MEMADDR);
+-	setenv("splashimage", addr);
+ 	conf_disp_pll(24, 1);
+ 	da8xx_video_init(&lcd_panel, &lcd_cfg, 32);
+ 	enable_lcd();
+@@ -725,6 +725,20 @@ int board_late_init(void)
+ #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+ 	char safe_string[HDR_NAME_LEN + 1];
+ 	struct am335x_baseboard_id header;
++	__maybe_unused char addr[10];
++	__maybe_unused char mem[10];
++
++#if defined(CONFIG_VIDEO)
++	if(board_is_bone(&header))
++		sprintf(mem,"mem=%dM",256-(VIDEO_DA8XX_FB_MEMSIZE / 1048576));
++	else
++		sprintf(mem,"mem=%dM",512-(VIDEO_DA8XX_FB_MEMSIZE / 1048576));
++	setenv("optargs", mem);
++	sprintf(addr,"0x%lX",VIDEO_DA8XX_FB_MEMADDR);
++	setenv("fb_base", addr);
++	sprintf(addr,"0x%.8X",(VIDEO_DA8XX_FB_MEMSIZE/1048576));
++	setenv("fb_dim", addr);
++#endif
+ 
+ 	if (read_eeprom(&header) < 0)
+ 		puts("Could not get board ID.\n");
+@@ -744,8 +758,8 @@ int board_late_init(void)
+ 
+ #if defined(CONFIG_VIDEO)
+ 	setenv("stdout", "serial");
+-	enable_pwm();
+-	//enable_backlight();
++	//enable_pwm();
++	enable_backlight();
+ #endif
+ 
+ 	return 0;
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 6d29de6..33e6e8d 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -86,9 +86,12 @@ extern unsigned long fb_mem_baseaddr;
+ #define PWM_DUTY	0x1000
+ #define DA8XX_LCD_CNTL_BASE LCD_CNTL_BASE
+ #define SPLASH_ARGS \
+-	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${splashfile}\0" \
++	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${bootdir}/${splashfile}\0" \
+ 	"splashimage=0x8F000000\0" \
+-	"splashfile=splash.bmp\0"
++	"splashfile=splash.bmp\0" \
++	"fdt_setup=fdt addr ${fdtaddr};" \
++		"fdt set /lcdc fb-baseaddr <${fb_base}>;" \
++		"fdt set /lcdc fb-size-MB <${fb_dim}>\0"
+ #else
+ #define SPLASH_ARGS ""
+ #endif
+-- 
+1.9.1
+

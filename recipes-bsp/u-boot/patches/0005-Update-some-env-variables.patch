@@ -1,0 +1,33 @@
+From d76ba4e95dff73c68b652dc5624125d44560bc79 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2015 23:25:00 +0100
+Subject: [PATCH 05/15] Update some env variables
+
+---
+ include/configs/am335x_evm.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 7f4fecc..13edc43 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -102,7 +102,7 @@ extern unsigned long fb_mem_baseaddr;
+ 	SPLASH_ARGS \
+ 	"boot_fdt=try\0" \
+ 	"bootpart=0:2\0" \
+-	"bootdir=/boot\0" \
++	"bootdir=\0" \
+ 	"bootfile=zImage\0" \
+ 	"fdtfile=undefined\0" \
+ 	"console=ttyO0,115200n8\0" \
+@@ -435,6 +435,7 @@ extern unsigned long fb_mem_baseaddr;
+ 					"128k(u-boot-env2),3464k(kernel)," \
+ 					"-(rootfs)"
+ #elif defined(CONFIG_EMMC_BOOT)
++#undef CONFIG_SPL_OS_BOOT
+ #define CONFIG_ENV_IS_IN_MMC
+ #define CONFIG_SPL_ENV_SUPPORT
+ #define CONFIG_SYS_MMC_ENV_DEV		1
+-- 
+1.9.1
+

@@ -1,0 +1,50 @@
+From c081361f4d42ab10ad7b6e13cccfad5bec5dadc4 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2015 23:16:03 +0100
+Subject: [PATCH 02/15] Add video drivers for BeagleBone
+
+---
+ configs/am335x_boneblack_defconfig |  2 ++
+ drivers/video/Kconfig              | 18 ++++++++++++++++++
+ 2 files changed, 20 insertions(+)
+
+diff --git a/configs/am335x_boneblack_defconfig b/configs/am335x_boneblack_defconfig
+index 60339c8..8b3eb9e 100644
+--- a/configs/am335x_boneblack_defconfig
++++ b/configs/am335x_boneblack_defconfig
+@@ -8,3 +8,5 @@ CONFIG_SYS_EXTRA_OPTIONS="EMMC_BOOT"
+ # CONFIG_CMD_FLASH is not set
+ # CONFIG_CMD_SETEXPR is not set
+ CONFIG_SPI_FLASH=y
++CONFIG_VIDEO_DA8XX=y
++CONFIG_CFB_CONSOLE=y
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 9ae23e8..fe2cf83 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -240,3 +240,21 @@ config VIDEO_TEGRA124
+ 	   HDMI. At present only eDP is supported by U-Boot. This option
+ 	   enables this support which can be used on devices which
+ 	   have an eDP display connected.
++
++config VIDEO_DA8XX
++	bool "Enable video framebuffer DA8XX"
++	help
++	  Set DA8XX framebuffer mode (needed for bootsplash and graphical
++	  framebuffer console)
++
++config AM335X_LCD
++	bool "Enable video framebuffer AM335X_LCD"
++	help
++	  Set AM335X_LCD framebuffer mode (needed for bootsplash and graphical
++	  framebuffer console)
++
++config CFB_CONSOLE
++	bool "Set framebuffer Console"
++	help
++	  Set CFB_CONSOLE framebuffer mode (needed for bootsplash and graphical
++	  framebuffer console)
+\ No newline at end of file
+-- 
+1.9.1
+

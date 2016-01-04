@@ -1,0 +1,122 @@
+From 811abecb95c73167848e14efc33682d0712bede4 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2015 23:13:30 +0100
+Subject: [PATCH 01/15] Add support for BeagleBone power-off
+
+---
+ board/ti/am335x/board.c  | 68 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/power/tps65217.h |  1 +
+ 2 files changed, 69 insertions(+)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index 96245a3..004f47c 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <common.h>
++#include <rtc.h>
+ #include <errno.h>
+ #include <spl.h>
+ #include <asm/arch/cpu.h>
+@@ -218,10 +219,59 @@ const struct dpll_params dpll_ddr_evm_sk = {
+ const struct dpll_params dpll_ddr_bone_black = {
+ 		400, OSC-1, 1, -1, -1, -1, -1};
+ 
++void am335x_rtc_poweroff(void) {
++	int reg_val;
++	struct rtc_time tm;
++
++	if (tps65217_reg_write(TPS65217_PROT_LEVEL_NONE, TPS65217_STATUS, 0x80, 0x80))
++		puts("tps65217_reg_write failure\n");
++
++	/* Set the Power Enable PMIC*/
++	reg_val=readl(0x44e3e000 + 0x98);
++	writel(reg_val | 0x10000, (0x44e3e000 + 0x98)); // Enable PWR_ENABLE_BIT
++	/* Rather than play the roll over game, just wait an extra second */
++	do {
++		/* Wait unit the busy bit is cleared.  Max 15 uS */
++		while(readl(0x44e3e000 + 0x44) & 0x1) {
++		}
++
++		/* Read the current time, convert from binary */
++		tm.tm_sec = bcd2bin(readb(0x44e3e000 + 0x00));
++		tm.tm_min = bcd2bin(readb(0x44e3e000 + 0x04));
++		tm.tm_hour = bcd2bin(readb(0x44e3e000 + 0x08));
++		tm.tm_mday = bcd2bin(readb(0x44e3e000 + 0x0C));
++		tm.tm_mon = bcd2bin(readb(0x44e3e000 + 0x10));
++		tm.tm_year = bcd2bin(readb(0x44e3e000 + 0x14));
++
++		if (59 == tm.tm_sec) {
++			mdelay(100);
++		}
++
++	} while (59 == tm.tm_sec);
++
++	tm.tm_sec++;
++
++	/* Write the Alarm 2 Register with the shutdown time */
++	writeb(bin2bcd(tm.tm_sec), 0x44e3e000 + 0x80);
++	writeb(bin2bcd(tm.tm_min), 0x44e3e000 + 0x84);
++	writeb(bin2bcd(tm.tm_hour), 0x44e3e000 + 0x88);
++	writeb(bin2bcd(tm.tm_mday), 0x44e3e000 + 0x8C);
++	writeb(bin2bcd(tm.tm_mon), 0x44e3e000 + 0x90);
++	writeb(bin2bcd(tm.tm_year), 0x44e3e000 + 0x94);
++
++	/* Enable the Alarm 2 Interrupt */
++	reg_val=readl(0x44e3e000 + 0x48);
++	writel(reg_val | 0x10, (0x44e3e000 + 0x48)); // Enable Alarm2 interrupt once
++
++	/* Power is being pulled */
++	while(1);
++}
++
+ void am33xx_spl_board_init(void)
+ {
+ 	struct am335x_baseboard_id header;
+ 	int mpu_vdd;
++	u32 tmp;
+ 
+ 	if (read_eeprom(&header) < 0)
+ 		puts("Could not get board ID.\n");
+@@ -244,6 +294,24 @@ void am33xx_spl_board_init(void)
+ 		if (i2c_probe(TPS65217_CHIP_PM))
+ 			return;
+ 
++		if (board_is_bone(&header) || board_is_bone_lt(&header)) {
++			uchar pmic_status_register;
++			writel(0x1, (0x44e3e000 + 0x40)); // enable RTC
++			tps65217_reg_read(TPS65217_STATUS, &pmic_status_register);
++			/* Check if power button is pressed
++			 * stay on if true
++			 * shutdown if false
++			 */
++			tmp=readl(0x44e3e000 + 0x60);
++			if(tmp == 0x0){
++				if (!(pmic_status_register & TPS65217_PWR_BTN_BITMASK)) {
++					puts("Power button not pressed: shutdown now\n");
++					am335x_rtc_poweroff();
++				}
++			}
++			writel(0xFFFFFFFF, (0x44e3e000 + 0x60));
++		}
++
+ 		/*
+ 		 * On Beaglebone White we need to ensure we have AC power
+ 		 * before increasing the frequency.
+diff --git a/include/power/tps65217.h b/include/power/tps65217.h
+index 93cbe36..eac25b3 100644
+--- a/include/power/tps65217.h
++++ b/include/power/tps65217.h
+@@ -76,6 +76,7 @@ enum {
+ #define TPS65217_PWR_OFF			0x80
+ #define TPS65217_PWR_SRC_USB_BITMASK		0x4
+ #define TPS65217_PWR_SRC_AC_BITMASK		0x8
++#define TPS65217_PWR_BTN_BITMASK		0x1
+ 
+ int tps65217_reg_read(uchar src_reg, uchar *src_val);
+ int tps65217_reg_write(uchar prot_level, uchar dest_reg, uchar dest_val,
+-- 
+1.9.1
+
