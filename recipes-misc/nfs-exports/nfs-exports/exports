@@ -1,0 +1,1 @@
+/home/root/projects/	192.168.85.*(rw,sync,no_root_squash,no_subtree_check)
