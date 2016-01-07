@@ -39,7 +39,6 @@ IMAGE_INSTALL += "\
 			packagegroup-qt5-extra \
 			packagegroup-qt5-graphics \
 			qt5-env \
-			load-modules \
 			"
 
 #PACKAGE_EXCLUDE = "matchbox-wm matchbox-terminal"
