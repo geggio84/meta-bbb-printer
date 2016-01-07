@@ -29,6 +29,7 @@ SRC_URI += "file://0009-defconfig-Add-missing-PCA9685-driver.patch"
 SRC_URI += "file://0010-defconfig-rename-to-bbb_printer_defconfig.patch"
 SRC_URI += "file://0011-defconfig-update-defconfig-for-4.1.13-and-fix-USB-ga.patch"
 SRC_URI += "file://0012-defconfig-disable-fb-console.patch"
+SRC_URI += "file://0013-defconfig-enable-NFS-server-support.patch"
 SRC_URI += "file://defconfig"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_serial"
