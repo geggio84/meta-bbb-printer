@@ -38,6 +38,7 @@ IMAGE_INSTALL += "\
 			packagegroup-qt5-extra \
 			packagegroup-qt5-graphics \
 			qt5-env \
+			x11-env \
 			nfs-exports \
 			"
 
