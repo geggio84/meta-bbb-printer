@@ -1,0 +1,45 @@
+From 4aedc94ead8c130899a4bf9fe5d889da2153a0f3 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Thu, 7 Jan 2016 22:22:46 +0100
+Subject: [PATCH 18/18] Fix 16 bit LCD configuration
+
+---
+ board/ti/am335x/board.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index d31af0c..071cf3f 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -58,8 +58,8 @@ static const struct da8xx_panel lcd_panel = {
+ 
+ static const struct display_panel disp_panel = {
+ 	WVGA,
+-	32,
+-	24,
++	16,
++	16,
+ 	COLOR_ACTIVE,
+ };
+ 
+@@ -68,7 +68,7 @@ static const struct lcd_ctrl_config lcd_cfg = {
+ 	.ac_bias		= 255,
+ 	.ac_bias_intrpt		= 0,
+ 	.dma_burst_sz		= 16,
+-	.bpp			= 32,
++	.bpp			= 16,
+ 	.fdd			= 0x80,
+ 	.tft_alt_mode		= 0,
+ 	.stn_565_mode		= 0,
+@@ -702,7 +702,7 @@ int board_init(void)
+ 	else
+ 		VIDEO_DA8XX_FB_MEMADDR = (((512*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
+ 	conf_disp_pll(24, 1);
+-	da8xx_video_init(&lcd_panel, &lcd_cfg, 32);
++	da8xx_video_init(&lcd_panel, &lcd_cfg, 16);
+ 	enable_lcd();
+ #endif
+ 
+-- 
+1.9.1
+

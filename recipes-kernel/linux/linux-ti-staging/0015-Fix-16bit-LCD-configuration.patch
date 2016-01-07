@@ -1,0 +1,80 @@
+From b2dff423e79f141d87a0687bebcfc31bc18f2470 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Thu, 7 Jan 2016 22:30:43 +0100
+Subject: [PATCH 15/15] Fix 16bit LCD configuration
+
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 47 +++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 15 deletions(-)
+ mode change 100644 => 100755 arch/arm/boot/dts/am335x-boneblack.dts
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+old mode 100644
+new mode 100755
+index e500738..a083fa6
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -13,6 +13,38 @@
+ / {
+ 	model = "TI AM335x BeagleBone Black";
+ 	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++
++	panel {
++		compatible = "ti,tilcdc,panel";
++		status = "okay";
++		panel-info {
++			ac-bias           = <255>;
++			ac-bias-intrpt    = <0>;
++			dma-burst-sz      = <16>;
++			bpp               = <16>;
++			fdd               = <0x80>;
++			sync-edge         = <0>;
++			sync-ctrl         = <1>;
++			raster-order      = <0>;
++			fifo-th           = <0>;
++		};
++
++		display-timings {
++			480x272p57 {
++				clock-frequency = <9000000>;
++				hactive = <480>;
++				vactive = <272>;
++				hfront-porch = <9>;
++				hback-porch = <44>;
++				hsync-len = <5>;
++				vback-porch = <13>;
++				vfront-porch = <4>;
++				vsync-len = <10>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++			};
++		};
++	};
+ };
+ 
+ &ldo3_reg {
+@@ -98,21 +130,6 @@
+ 	u-boot-config;
+ 	fb-baseaddr = <0x9FC00000>;
+ 	fb-size-MB = <0x00000004>;
+-	display-timings {
+-		480x272p57 {
+-			clock-frequency = <9000000>;
+-			hactive = <480>;
+-			vactive = <272>;
+-			hfront-porch = <9>;
+-			hback-porch = <44>;
+-			hsync-len = <5>;
+-			vback-porch = <13>;
+-			vfront-porch = <4>;
+-			vsync-len = <10>;
+-			hsync-active = <0>;
+-			vsync-active = <0>;
+-		};
+-	};
+ };
+ 
+ &mcasp0	{
+-- 
+1.9.1
+

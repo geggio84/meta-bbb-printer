@@ -1,0 +1,28 @@
+From 8ba59ea67e5f21f86ffb7e3babbe6a8e95ee0eb6 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Thu, 7 Jan 2016 22:22:20 +0100
+Subject: [PATCH 17/18] Revert video color swap for 32 BIT
+
+---
+ drivers/video/cfb_console.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/cfb_console.c b/drivers/video/cfb_console.c
+index 1dd99f3..d8d47b2 100644
+--- a/drivers/video/cfb_console.c
++++ b/drivers/video/cfb_console.c
+@@ -1209,9 +1209,9 @@ __weak void video_set_lut(unsigned int index, unsigned char r,
+ 
+ #define FILL_32BIT_X888RGB(r,g,b) {			\
+ 	*(unsigned long *)fb =				\
+-		SWAP32((unsigned long)(((r) |	\
++		SWAP32((unsigned long)(((r<<16) |	\
+ 					(g<<8)  |	\
+-					(b<<16))));		\
++					 b)));		\
+ 	fb += 4;					\
+ }
+ 
+-- 
+1.9.1
+

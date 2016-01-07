@@ -30,6 +30,8 @@ SRC_URI += "file://0010-defconfig-rename-to-bbb_printer_defconfig.patch"
 SRC_URI += "file://0011-defconfig-update-defconfig-for-4.1.13-and-fix-USB-ga.patch"
 SRC_URI += "file://0012-defconfig-disable-fb-console.patch"
 SRC_URI += "file://0013-defconfig-enable-NFS-server-support.patch"
+SRC_URI += "file://0014-Revert-video-color-swap-for-24-and-32-BIT.patch"
+SRC_URI += "file://0015-Fix-16bit-LCD-configuration.patch"
 SRC_URI += "file://defconfig"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_serial"
