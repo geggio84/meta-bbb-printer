@@ -30,4 +30,4 @@ SRC_URI += "file://0010-defconfig-rename-to-bbb_printer_defconfig.patch"
 SRC_URI += "file://0011-defconfig-update-defconfig-for-4.1.13-and-fix-USB-ga.patch"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_serial"
-module_autoload_g_serial = "g_serial"
+KERNEL_MODULE_AUTOLOAD = "g_serial"
