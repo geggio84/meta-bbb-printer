@@ -1,0 +1,42 @@
+From b97e2efdc3126cd079c8717ee1a13b26d76f1e7e Mon Sep 17 00:00:00 2001
+From: Michael Welling <mwelling@ieee.org>
+Date: Sat, 23 May 2015 21:13:44 -0500
+Subject: [PATCH 22/25] spi: omap2-mcspi: Fix GPIO chip select support
+
+The OMAP2_MCSPI_CHCONF_FORCE must be toggled even when using GPIO
+chip selects. This patch conditionally calls the omap2_mcspi_set_cs
+function to do so when using GPIO chip selects.
+
+Signed-off-by: Michael Welling <mwelling@ieee.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 9e7d5e3..4b7a25a 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1114,6 +1114,9 @@ static int omap2_mcspi_work_one(struct omap2_mcspi *mcspi,
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+ 
++	if (gpio_is_valid(spi->cs_gpio))
++		omap2_mcspi_set_cs(spi, spi->mode & SPI_CS_HIGH);
++
+ 	if (par_override ||
+ 	    (t->speed_hz != spi->max_speed_hz) ||
+ 	    (t->bits_per_word != spi->bits_per_word)) {
+@@ -1198,6 +1201,9 @@ out:
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+ 
++	if (gpio_is_valid(spi->cs_gpio))
++		omap2_mcspi_set_cs(spi, !(spi->mode & SPI_CS_HIGH));
++
+ 	if (mcspi->fifo_depth > 0 && t)
+ 		omap2_mcspi_set_fifo(spi, t, 0);
+ 
+-- 
+1.9.1
+

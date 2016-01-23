@@ -1,0 +1,45 @@
+From f37ce05c0742de529c2d61ff6a4c20e47f79a439 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sat, 23 Jan 2016 11:13:05 +0100
+Subject: [PATCH 25/25] defconfig: Add PRU remoteproc and RPMSG module drivers
+
+---
+ arch/arm/configs/bbb_printer_defconfig | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/bbb_printer_defconfig b/arch/arm/configs/bbb_printer_defconfig
+index b71c82f..04efd1b 100755
+--- a/arch/arm/configs/bbb_printer_defconfig
++++ b/arch/arm/configs/bbb_printer_defconfig
+@@ -3973,11 +3973,13 @@ CONFIG_OMAP_IOMMU_DEBUG=y
+ CONFIG_REMOTEPROC=y
+ # CONFIG_STE_MODEM_RPROC is not set
+ CONFIG_WKUP_M3_RPROC=y
+-# CONFIG_PRUSS_REMOTEPROC is not set
++CONFIG_PRUSS_REMOTEPROC=m
+ 
+ #
+ # Rpmsg drivers
+ #
++CONFIG_RPMSG=m
++CONFIG_RPMSG_PRU=m
+ 
+ #
+ # SOC (System On Chip) specific Drivers
+@@ -4564,7 +4566,12 @@ CONFIG_TRACING_SUPPORT=y
+ # CONFIG_TEST_FIRMWARE is not set
+ # CONFIG_TEST_UDELAY is not set
+ # CONFIG_MEMTEST is not set
+-# CONFIG_SAMPLES is not set
++CONFIG_SAMPLES=y
++# CONFIG_SAMPLE_KOBJECT is not set
++# CONFIG_SAMPLE_KPROBES is not set
++# CONFIG_SAMPLE_HW_BREAKPOINT is not set
++# CONFIG_SAMPLE_KFIFO is not set
++CONFIG_SAMPLE_RPMSG_CLIENT=m
+ CONFIG_HAVE_ARCH_KGDB=y
+ # CONFIG_KGDB is not set
+ # CONFIG_ARM_PTDUMP is not set
+-- 
+1.9.1
+

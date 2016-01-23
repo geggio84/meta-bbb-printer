@@ -1,0 +1,37 @@
+From 94148cd0aecb29551761c5f64d5fef6314455b72 Mon Sep 17 00:00:00 2001
+From: Michael Welling <mwelling@ieee.org>
+Date: Sat, 23 May 2015 21:13:45 -0500
+Subject: [PATCH 23/25] spi: omap2-mcspi: Handle error on gpio_request
+
+If a valid GPIO is specified but cannot be requested by the driver, print a
+message and error out of omap2_mcspi_setup.
+
+Signed-off-by: Michael Welling <mwelling@ieee.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 4b7a25a..cfa6e9e 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1029,9 +1029,12 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 	}
+ 
+ 	if (gpio_is_valid(spi->cs_gpio)) {
+-		if (gpio_request(spi->cs_gpio, dev_name(&spi->dev)) == 0)
+-			gpio_direction_output(spi->cs_gpio,
+-			!(spi->mode & SPI_CS_HIGH));
++		ret = gpio_request(spi->cs_gpio, dev_name(&spi->dev));
++		if (ret) {
++			dev_err(&spi->dev, "failed to request gpio\n");
++			return ret;
++		}
++		gpio_direction_output(spi->cs_gpio, !(spi->mode & SPI_CS_HIGH));
+ 	}
+ 
+ 	ret = pm_runtime_get_sync(mcspi->dev);
+-- 
+1.9.1
+

@@ -1,7 +1,7 @@
 From d005742cf63af9b90fb64e23732b64e93697f7d9 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sun, 22 Nov 2015 22:19:55 +0100
-Subject: [PATCH 04/11] Fix some device tree entries
+Subject: [PATCH 04/25] Fix some device tree entries
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 23 +++++++++++++++++++----
