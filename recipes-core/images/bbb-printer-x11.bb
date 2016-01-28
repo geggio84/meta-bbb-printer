@@ -40,6 +40,7 @@ IMAGE_INSTALL += "\
 			qt5-env \
 			x11-env \
 			nfs-exports \
+			pru-firmware \
 			"
 
 #PACKAGE_EXCLUDE = "matchbox-wm matchbox-terminal"
