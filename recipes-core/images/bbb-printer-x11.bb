@@ -60,5 +60,6 @@ IMAGE_INSTALL += "\
 			qt5-env \
 			x11-env \
 			nfs-exports \
+			disable-x11-blanking \
 			pru-firmware \
 			"
