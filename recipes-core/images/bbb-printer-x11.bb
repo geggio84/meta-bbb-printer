@@ -3,7 +3,7 @@ SUMMARY = "Basic BBB printer image with xserver support"
 LICENSE = "GPL-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
-IMAGE_FEATURES += "package-management ssh-server-dropbear nfs-server"
+IMAGE_FEATURES += "package-management ssh-server-dropbear nfs-server splash x11-base "
 
 DISTRO_FEATURES_remove = "ipv6"
 
@@ -31,8 +31,28 @@ IMAGE_INSTALL += "\
 			packagegroup-core-x11-xserver \
 			packagegroup-core-x11-utils \
 			xterm \
+			x11-common \
+			xauth \
+			xcursor-transparent-theme \
+			xf86-input-evdev \
+			xf86-input-keyboard \
+			xf86-input-mouse \
+			xf86-video-fbdev \
+			xhost \
+			xinit \
 			xinput \
 			xinput-calibrator \
+			xkbcomp \
+			xkeyboard-config \
+			xkeyboard-config-locale-en-gb \
+			xmodmap \
+			xrandr \
+			xserver-nodm-init \
+			xserver-xf86-config \
+			xserver-xorg \
+			xset \
+			xtscal \
+			formfactor \
 			packagegroup-qt5-base \
 			packagegroup-qt5-fonts \
 			packagegroup-qt5-extra \
@@ -42,5 +62,3 @@ IMAGE_INSTALL += "\
 			nfs-exports \
 			pru-firmware \
 			"
-
-#PACKAGE_EXCLUDE = "matchbox-wm matchbox-terminal"
