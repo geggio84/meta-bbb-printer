@@ -3,7 +3,7 @@ SUMMARY = "Basic BBB printer image with xserver support"
 LICENSE = "GPL-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
-IMAGE_FEATURES += "package-management ssh-server-dropbear nfs-server splash x11-base "
+IMAGE_FEATURES += "package-management ssh-server-openssh nfs-server splash x11-base "
 
 DISTRO_FEATURES_remove = "ipv6"
 

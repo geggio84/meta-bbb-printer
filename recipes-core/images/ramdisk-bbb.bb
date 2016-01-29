@@ -9,7 +9,7 @@ IMAGE_FSTYPES := "ext2.gz ext2.gz.u-boot"
 IMAGE_ROOTFS_SIZE = "32768"
 IMAGE_ROOTFS_SIZE_ext2 = "32768"
 
-IMAGE_FEATURES += "ssh-server-openssh"
+IMAGE_FEATURES += "ssh-server-dropbear"
 
 IMAGE_INSTALL += " \
 				packagegroup-core-boot \
