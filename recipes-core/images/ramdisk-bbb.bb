@@ -11,6 +11,8 @@ IMAGE_ROOTFS_SIZE_ext2 = "32768"
 
 IMAGE_FEATURES += "ssh-server-dropbear"
 
+EXTRA_IMAGE_FEATURES += "debug-tweaks"
+
 IMAGE_INSTALL += " \
 				packagegroup-core-boot \
 				${CORE_IMAGE_EXTRA_INSTALL} \

@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425
 
 IMAGE_FEATURES += "package-management ssh-server-openssh nfs-server splash x11-base "
 
+EXTRA_IMAGE_FEATURES += "debug-tweaks tools-debug"
+
 DISTRO_FEATURES_remove = "ipv6"
 
 inherit core-image populate_sdk_qt5
