@@ -1,7 +1,7 @@
 From 39ea9c2db0a31d0b97dd575dfdfa61d94d61dfcd Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Tue, 8 Dec 2015 22:02:49 +0100
-Subject: [PATCH 14/15] Add some AM335x PWM defines
+Subject: [PATCH 14/19] Add some AM335x PWM defines
 
 ---
  arch/arm/include/asm/arch-am33xx/cpu.h             | 38 ++++++++++++++++++++++

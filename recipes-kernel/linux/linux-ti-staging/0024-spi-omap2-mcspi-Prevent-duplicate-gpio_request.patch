@@ -1,7 +1,7 @@
 From 9f1542361f9939fc7c58440958b493a06c84dfab Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Mon, 30 Nov 2015 09:02:39 -0600
-Subject: [PATCH 24/25] spi: omap2-mcspi: Prevent duplicate gpio_request
+Subject: [PATCH 24/27] spi: omap2-mcspi: Prevent duplicate gpio_request
 
 Occasionally the setup function will be called multiple times. Only request
 the gpio the first time otherwise -EBUSY will occur on subsequent calls to

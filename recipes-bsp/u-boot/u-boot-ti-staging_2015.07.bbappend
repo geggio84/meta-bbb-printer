@@ -21,3 +21,4 @@ SRC_URI += "file://0015-Add-minimal-support-for-PWM-Backlight-with-fixed-dut.pat
 SRC_URI += "file://0016-Add-ramdisk-size-parameter-on-kernel-bootcmd-line.patch"
 SRC_URI += "file://0017-Revert-video-color-swap-for-32-BIT.patch"
 SRC_URI += "file://0018-Fix-16-bit-LCD-configuration.patch"
+SRC_URI += "file://0019-Update-pinmux-for-new-PCB-rev.0.patch"

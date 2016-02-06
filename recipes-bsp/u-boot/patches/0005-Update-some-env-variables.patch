@@ -1,7 +1,7 @@
 From d76ba4e95dff73c68b652dc5624125d44560bc79 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 2 Nov 2015 23:25:00 +0100
-Subject: [PATCH 05/15] Update some env variables
+Subject: [PATCH 05/19] Update some env variables
 
 ---
  include/configs/am335x_evm.h | 3 ++-

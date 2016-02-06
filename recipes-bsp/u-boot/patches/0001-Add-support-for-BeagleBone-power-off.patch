@@ -1,7 +1,7 @@
 From 811abecb95c73167848e14efc33682d0712bede4 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 2 Nov 2015 23:13:30 +0100
-Subject: [PATCH 01/15] Add support for BeagleBone power-off
+Subject: [PATCH 01/19] Add support for BeagleBone power-off
 
 ---
  board/ti/am335x/board.c  | 68 ++++++++++++++++++++++++++++++++++++++++++++++++

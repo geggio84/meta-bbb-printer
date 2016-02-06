@@ -1,7 +1,7 @@
 From b7d8097fdc08a8003680560127bf4bd0a8926cb7 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 4 Nov 2015 22:52:21 +0100
-Subject: [PATCH 09/15] Fix LCD initialization on board init function
+Subject: [PATCH 09/19] Fix LCD initialization on board init function
 
 ---
  board/ti/am335x/board.c | 22 ++++++++++++----------

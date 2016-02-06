@@ -1,7 +1,7 @@
 From 4aedc94ead8c130899a4bf9fe5d889da2153a0f3 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 22:22:46 +0100
-Subject: [PATCH 18/18] Fix 16 bit LCD configuration
+Subject: [PATCH 18/19] Fix 16 bit LCD configuration
 
 ---
  board/ti/am335x/board.c | 8 ++++----

@@ -1,7 +1,7 @@
 From 223c327e4b7ec01d5930834e2484c2f6fe689cf3 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 4 Nov 2015 22:50:50 +0100
-Subject: [PATCH 08/15] Add shutdown command
+Subject: [PATCH 08/19] Add shutdown command
 
 ---
  board/ti/am335x/board.c | 11 +++++++++++

@@ -1,7 +1,7 @@
 From 584ef9e69fcb0693eaeb8f390a996fc2394af2a0 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sun, 22 Nov 2015 22:41:30 +0100
-Subject: [PATCH 11/15] Fix Video init on beaglebone
+Subject: [PATCH 11/19] Fix Video init on beaglebone
 
 ---
  board/ti/am335x/board.c      | 24 +++++++++++++++++++-----

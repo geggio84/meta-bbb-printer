@@ -1,7 +1,7 @@
 From edcd16be3a5da29acef0b5db8355a46d7f0073b4 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 4 Nov 2015 22:50:07 +0100
-Subject: [PATCH 07/15] Move am335x_rtc_poweroff so it is compiled also on
+Subject: [PATCH 07/19] Move am335x_rtc_poweroff so it is compiled also on
  second stage
 
 ---

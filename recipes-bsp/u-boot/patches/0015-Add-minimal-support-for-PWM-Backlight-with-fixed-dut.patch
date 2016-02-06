@@ -1,7 +1,7 @@
 From 48c63f54941ee21f539f290546055d78acc67c80 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Tue, 8 Dec 2015 22:03:34 +0100
-Subject: [PATCH 15/15] Add minimal support for PWM Backlight with fixed duty
+Subject: [PATCH 15/19] Add minimal support for PWM Backlight with fixed duty
  cycle
 
 ---

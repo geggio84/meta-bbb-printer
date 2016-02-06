@@ -1,7 +1,7 @@
 From ed0161dfe9acbb4f6fa2f41c4e553e77784f19de Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 2 Nov 2015 23:22:40 +0100
-Subject: [PATCH 03/15] Add Beaglebone LCD support
+Subject: [PATCH 03/19] Add Beaglebone LCD support
 
 ---
  board/ti/am335x/board.c      | 165 +++++++++++++++++++++++++++++++++++++++++++

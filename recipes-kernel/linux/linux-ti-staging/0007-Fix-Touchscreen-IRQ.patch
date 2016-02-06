@@ -1,7 +1,7 @@
 From 593fe703baba9ec583985f54aae7fe491e434700 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 23 Nov 2015 23:33:33 +0100
-Subject: [PATCH 07/25] Fix Touchscreen IRQ
+Subject: [PATCH 07/27] Fix Touchscreen IRQ
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-

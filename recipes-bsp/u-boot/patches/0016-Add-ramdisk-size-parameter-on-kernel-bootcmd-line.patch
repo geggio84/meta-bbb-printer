@@ -1,7 +1,7 @@
 From 099d73919764e4fe1716a72e4d0e510454b480a3 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 14:50:08 +0100
-Subject: [PATCH 16/16] Add ramdisk size parameter on kernel bootcmd line
+Subject: [PATCH 16/19] Add ramdisk size parameter on kernel bootcmd line
 
 ---
  include/configs/am335x_evm.h | 3 ++-

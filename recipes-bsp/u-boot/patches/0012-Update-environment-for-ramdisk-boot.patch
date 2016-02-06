@@ -1,7 +1,7 @@
 From 64c4bf716a030c9293361c2ee907a229edb266f5 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sun, 22 Nov 2015 22:48:09 +0100
-Subject: [PATCH 12/15] Update environment for ramdisk boot
+Subject: [PATCH 12/19] Update environment for ramdisk boot
 
 ---
  board/ti/am335x/board.c      |  4 ++++

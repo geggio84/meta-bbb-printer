@@ -1,7 +1,7 @@
 From c081361f4d42ab10ad7b6e13cccfad5bec5dadc4 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 2 Nov 2015 23:16:03 +0100
-Subject: [PATCH 02/15] Add video drivers for BeagleBone
+Subject: [PATCH 02/19] Add video drivers for BeagleBone
 
 ---
  configs/am335x_boneblack_defconfig |  2 ++

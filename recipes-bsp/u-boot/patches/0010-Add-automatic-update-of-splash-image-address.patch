@@ -1,7 +1,7 @@
 From 56d120c4fd06041a1a3ff8dd04bd3a2451ea26b5 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 4 Nov 2015 22:53:16 +0100
-Subject: [PATCH 10/15] Add automatic update of splash image address based on
+Subject: [PATCH 10/19] Add automatic update of splash image address based on
  frame buffer configuration
 
 ---

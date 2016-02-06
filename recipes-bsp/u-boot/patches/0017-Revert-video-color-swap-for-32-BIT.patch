@@ -1,7 +1,7 @@
 From 8ba59ea67e5f21f86ffb7e3babbe6a8e95ee0eb6 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 22:22:20 +0100
-Subject: [PATCH 17/18] Revert video color swap for 32 BIT
+Subject: [PATCH 17/19] Revert video color swap for 32 BIT
 
 ---
  drivers/video/cfb_console.c | 4 ++--

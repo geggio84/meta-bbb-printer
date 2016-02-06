@@ -1,7 +1,7 @@
 From 8bc7df80b31dfdb0bfe0f4bdf80fa36c7acf66de Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 2 Nov 2015 23:23:16 +0100
-Subject: [PATCH 04/15] Add bbb-printer pin mux
+Subject: [PATCH 04/19] Add bbb-printer pin mux
 
 ---
  board/ti/am335x/mux.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
