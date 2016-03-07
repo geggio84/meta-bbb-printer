@@ -44,6 +44,8 @@ SRC_URI += "file://0024-spi-omap2-mcspi-Prevent-duplicate-gpio_request.patch"
 SRC_URI += "file://0025-defconfig-Add-PRU-remoteproc-and-RPMSG-module-driver.patch"
 SRC_URI += "file://0026-Update-devicetree-to-support-new-PCB-rev.0.patch"
 SRC_URI += "file://0027-Select-external-RTC-device-by-default.patch"
+SRC_URI += "file://0028-Fix-disable-hdmi-clock-oscillator.patch"
+SRC_URI += "file://0029-Change-SPI0-to-spi-gpio-because-of-4-cs-limitation-o.patch"
 SRC_URI += "file://defconfig"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_serial"

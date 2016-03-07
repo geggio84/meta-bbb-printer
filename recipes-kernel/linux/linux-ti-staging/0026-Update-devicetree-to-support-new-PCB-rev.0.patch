@@ -1,7 +1,7 @@
 From 03db6f5d2fcc4e9528e04e64c938b086483f97b6 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sat, 6 Feb 2016 17:12:10 +0100
-Subject: [PATCH 26/27] Update devicetree to support new PCB rev.0
+Subject: [PATCH 26/29] Update devicetree to support new PCB rev.0
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 110 +++++++++++++++++-------------

@@ -1,7 +1,7 @@
 From f37ce05c0742de529c2d61ff6a4c20e47f79a439 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sat, 23 Jan 2016 11:13:05 +0100
-Subject: [PATCH 25/27] defconfig: Add PRU remoteproc and RPMSG module drivers
+Subject: [PATCH 25/29] defconfig: Add PRU remoteproc and RPMSG module drivers
 
 ---
  arch/arm/configs/bbb_printer_defconfig | 11 +++++++++--
