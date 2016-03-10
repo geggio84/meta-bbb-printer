@@ -1,0 +1,57 @@
+From 45739714ca38b4b6d987c6f035490704b8042778 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Thu, 10 Mar 2016 15:08:42 +0100
+Subject: [PATCH 33/33] pwm-pca9685: fix full-off to full-on PWM bug
+
+Since pwm-enable is called after pwm_config
+if full-on is set after full-off register LED_N_ON_H
+is rewritten to '0' the first time.
+So check before set to '0'.
+---
+ drivers/pwm/pwm-pca9685.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/pwm/pwm-pca9685.c
+
+diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
+old mode 100644
+new mode 100755
+index 70448a6..acf8e8f
+--- a/drivers/pwm/pwm-pca9685.c
++++ b/drivers/pwm/pwm-pca9685.c
+@@ -142,6 +142,14 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+ 
+ 		regmap_write(pca->regmap, reg, LED_FULL);
+ 
++		/* Clear the full ON bit */
++		if (pwm->hwpwm >= PCA9685_MAXCHAN)
++			reg = PCA9685_ALL_LED_ON_H;
++		else
++			reg = LED_N_ON_H(pwm->hwpwm);
++
++		regmap_write(pca->regmap, reg, 0);
++
+ 		return 0;
+ 	}
+ 
+@@ -204,6 +212,7 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ {
+ 	struct pca9685 *pca = to_pca(chip);
+ 	unsigned int reg;
++	unsigned int ret;
+ 
+ 	/*
+ 	 * The PWM subsystem does not support a pre-delay.
+@@ -221,7 +230,9 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ 	else
+ 		reg = LED_N_ON_H(pwm->hwpwm);
+ 
+-	regmap_write(pca->regmap, reg, 0);
++	regmap_read(pca->regmap, reg, &ret);
++	if(!(ret & LED_FULL))
++		regmap_write(pca->regmap, reg, 0);
+ 
+ 	/*
+ 	 * Clear the full-off bit.
+-- 
+1.9.1
+

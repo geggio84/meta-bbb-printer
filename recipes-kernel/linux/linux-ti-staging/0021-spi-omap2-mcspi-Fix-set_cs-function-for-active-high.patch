@@ -1,7 +1,7 @@
 From b3b696b912179c66b7197a817c8315cd6b155164 Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Sat, 23 May 2015 21:13:43 -0500
-Subject: [PATCH 21/29] spi: omap2-mcspi: Fix set_cs function for active high
+Subject: [PATCH 21/33] spi: omap2-mcspi: Fix set_cs function for active high
 
 The core spi driver swaps the polarity of the enable based on SPI_CS_HIGH.
 The omap2 controller has an internal configuration register bit called

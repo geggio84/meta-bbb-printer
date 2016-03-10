@@ -1,7 +1,7 @@
 From b2dff423e79f141d87a0687bebcfc31bc18f2470 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 22:30:43 +0100
-Subject: [PATCH 15/29] Fix 16bit LCD configuration
+Subject: [PATCH 15/33] Fix 16bit LCD configuration
 
 ---
  arch/arm/boot/dts/am335x-boneblack.dts | 47 +++++++++++++++++++++++-----------

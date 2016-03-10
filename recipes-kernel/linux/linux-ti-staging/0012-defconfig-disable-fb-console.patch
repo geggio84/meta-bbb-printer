@@ -1,7 +1,7 @@
 From cef08d8fbcb5f03b3085516e7053671c5afa61cf Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 6 Jan 2016 23:23:33 +0100
-Subject: [PATCH 12/29] defconfig: disable fb console
+Subject: [PATCH 12/33] defconfig: disable fb console
 
 ---
  arch/arm/configs/bbb_printer_defconfig | 17 +----------------

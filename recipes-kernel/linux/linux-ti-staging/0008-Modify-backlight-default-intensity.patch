@@ -1,7 +1,7 @@
 From 80431e669d760b98baa2e059904547539a83daaf Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 23 Nov 2015 23:37:09 +0100
-Subject: [PATCH 08/29] Modify backlight default intensity
+Subject: [PATCH 08/33] Modify backlight default intensity
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-

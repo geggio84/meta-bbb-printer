@@ -1,7 +1,7 @@
 From 12efadd4210dbbbd704fdfd37bae4d498a77417e Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sun, 22 Nov 2015 22:14:07 +0100
-Subject: [PATCH 02/29] spidev: fix warning on spidev
+Subject: [PATCH 02/33] spidev: fix warning on spidev
 
 ---
  drivers/spi/spidev.c | 1 +
