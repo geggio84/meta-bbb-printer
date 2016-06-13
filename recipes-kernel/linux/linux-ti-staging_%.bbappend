@@ -55,5 +55,5 @@ SRC_URI += "file://0035-Add-button-on-rotary-encoder.patch"
 SRC_URI += "file://0036-w1-w1-term-change-w1-resolution-to-decrease-conversi.patch"
 SRC_URI += "file://defconfig"
 
-MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_serial"
-KERNEL_MODULE_AUTOLOAD = "g_serial"
+MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_multi"
+KERNEL_MODULE_AUTOLOAD = "g_multi"
