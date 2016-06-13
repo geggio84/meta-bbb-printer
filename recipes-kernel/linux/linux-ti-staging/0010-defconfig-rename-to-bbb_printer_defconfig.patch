@@ -1,7 +1,7 @@
 From a0b6ea532f24c7e91100132cfba3a1ca5f009b3f Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Tue, 15 Dec 2015 22:52:25 +0100
-Subject: [PATCH 10/33] defconfig: rename to bbb_printer_defconfig
+Subject: [PATCH 10/36] defconfig: rename to bbb_printer_defconfig
 
 ---
  arch/arm/configs/bbb_printer_defconfig | 4771 ++++++++++++++++++++++++++++++++

@@ -1,0 +1,34 @@
+From 83bd9e3c0ad9275d0e44428518d79439819bdc1f Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sat, 28 May 2016 13:04:36 +0200
+Subject: [PATCH 35/36] Add button on rotary encoder
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index b5366d6..8948e97 100755
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -81,6 +81,17 @@
+ 		rotary-encoder,relative-axis;
+ 	};
+ 
++	gpio_keys@0 {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		button@0 {
++			label = "Key ENTER";
++			linux,code = <28>;
++			gpios = <&gpio0 30 1>;
++		};
++	};
++
+ 	pwmleds {
+ 		compatible = "pwm-leds";
+ 		extruder {
+-- 
+1.9.1
+

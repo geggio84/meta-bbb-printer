@@ -1,0 +1,67 @@
+From fe519596c59576ebd4f6a8a0173e50ca4153de6f Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 13 Jun 2016 23:20:38 +0200
+Subject: [PATCH 36/36] w1: w1-term: change w1 resolution to decrease
+ conversion time to 96ms
+
+---
+ drivers/w1/slaves/w1_therm.c | 12 +++++++++++-
+ drivers/w1/w1.h              |  1 +
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/w1/slaves/w1_therm.c
+ mode change 100644 => 100755 drivers/w1/w1.h
+
+diff --git a/drivers/w1/slaves/w1_therm.c b/drivers/w1/slaves/w1_therm.c
+old mode 100644
+new mode 100755
+index 55eb86c..5723f03
+--- a/drivers/w1/slaves/w1_therm.c
++++ b/drivers/w1/slaves/w1_therm.c
+@@ -70,11 +70,21 @@ struct w1_therm_family_data {
+ 
+ static int w1_therm_add_slave(struct w1_slave *sl)
+ {
++	struct w1_master *dev;
+ 	sl->family_data = kzalloc(sizeof(struct w1_therm_family_data),
+ 		GFP_KERNEL);
+ 	if (!sl->family_data)
+ 		return -ENOMEM;
+ 	atomic_set(THERM_REFCNT(sl->family_data), 1);
++
++	dev = sl->master;
++	if (!w1_reset_select_slave(sl)) {
++		w1_write_8(dev, W1_WRITE_SCRATCHPAD);
++		w1_write_8(dev, 0x4B);
++		w1_write_8(dev, 0x46);
++		w1_write_8(dev, 0x1F);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -235,7 +245,7 @@ static ssize_t w1_slave_show(struct device *device,
+ 
+ 		if (!w1_reset_select_slave(sl)) {
+ 			int count = 0;
+-			unsigned int tm = 750;
++			unsigned int tm = 94;
+ 			unsigned long sleep_rem;
+ 
+ 			w1_write_8(dev, W1_READ_PSUPPLY);
+diff --git a/drivers/w1/w1.h b/drivers/w1/w1.h
+old mode 100644
+new mode 100755
+index 56a49ba..40b281d
+--- a/drivers/w1/w1.h
++++ b/drivers/w1/w1.h
+@@ -59,6 +59,7 @@ struct w1_reg_num
+ #define W1_CONVERT_TEMP		0x44
+ #define W1_SKIP_ROM		0xCC
+ #define W1_READ_SCRATCHPAD	0xBE
++#define W1_WRITE_SCRATCHPAD	0x4E
+ #define W1_READ_ROM		0x33
+ #define W1_READ_PSUPPLY		0xB4
+ #define W1_MATCH_ROM		0x55
+-- 
+1.9.1
+

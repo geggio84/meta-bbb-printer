@@ -1,7 +1,7 @@
 From 613ac3fbc1030a64e27c4fdf6de03ae5d89e2c3c Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Thu, 7 May 2015 18:36:53 -0500
-Subject: [PATCH 17/33] spi: omap2-mcspi: Switch driver to use transfer_one
+Subject: [PATCH 17/36] spi: omap2-mcspi: Switch driver to use transfer_one
 
 Switches from transfer_one_message to transfer_one to prepare driver for
 use of GPIO chip selects.

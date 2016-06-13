@@ -1,0 +1,39 @@
+From 37a5914db26ebbf12b064646f4e6fa87c14ddda7 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sat, 16 Apr 2016 09:34:30 +0200
+Subject: [PATCH 34/36] Change stepper pins muxing to PRU direct output
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 3f076cb..b5366d6 100755
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -393,14 +393,14 @@
+ 
+ 	stepper_pins: pinmux_stepper_pins {
+ 		pinctrl-single,pins = <
+-			0x1AC (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_ahclkx.gpio3_21, DIR X */
+-			0x030 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad12.gpio1_12, STEP X */
+-			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_aclkx.gpio3_14, DIR Y */
+-			0x034 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad13.gpio1_13, STEP Y */
+-			0x1A8 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_axr1.gpio3_20, DIR Z */
+-			0x19C (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_ahclkr.gpio3_17, STEP Z */
+-			0x194 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_fsx.gpio3_15, DIR E */
+-			0x198 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* mcasp0_axr0.gpio3_16, STEP E */
++			0x1AC (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_ahclkx.pr1_pru0_pru_r30[7], DIR X */
++			0x030 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_ad12.pr1_pru0_pru_r30[14], STEP X */
++			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_aclkx.pr1_pru0_pru_r30[0], DIR Y */
++			0x034 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_ad13.pr1_pru0_pru_r30[15], STEP Y */
++			0x1A8 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_axr1.pr1_pru0_pru_r30[6], DIR Z */
++			0x19C (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_ahclkr.pr1_pru0_pru_r30[3], STEP Z */
++			0x194 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_fsx.pr1_pru0_pru_r30[1], DIR E */
++			0x198 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_axr0.pr1_pru0_pru_r30[2], STEP E */
+ 			0x038 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ad14.gpio1_14, FLAG */
+ 			0x03C (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad15.gpio1_15, Reset_n */
+ 		>;
+-- 
+1.9.1
+

@@ -1,7 +1,7 @@
 From 582f6153fa4cc136f07f1755911035a02e24d53a Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sat, 6 Feb 2016 17:12:37 +0100
-Subject: [PATCH 27/33] Select external RTC device by default
+Subject: [PATCH 27/36] Select external RTC device by default
 
 ---
  arch/arm/configs/bbb_printer_defconfig | 2 +-

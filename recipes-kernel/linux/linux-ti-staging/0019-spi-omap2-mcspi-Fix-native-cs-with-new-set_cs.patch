@@ -1,7 +1,7 @@
 From 2be023ca441f26695c293b801b3126d88b39251a Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Tue, 12 May 2015 12:38:57 -0500
-Subject: [PATCH 19/33] spi: omap2-mcspi: Fix native cs with new set_cs
+Subject: [PATCH 19/36] spi: omap2-mcspi: Fix native cs with new set_cs
 
 GPIO chip select patch series appears to have broken the native chip select
 support. This patch pulls the manual native chip select toggling out of

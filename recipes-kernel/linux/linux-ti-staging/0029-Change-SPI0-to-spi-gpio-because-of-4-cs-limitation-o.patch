@@ -1,7 +1,7 @@
 From 160a5eb019b7ab56c11fdbcc74532394ca41f527 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 7 Mar 2016 22:00:44 +0100
-Subject: [PATCH 29/33] Change SPI0 to spi gpio, because of 4 cs limitation of
+Subject: [PATCH 29/36] Change SPI0 to spi gpio, because of 4 cs limitation of
  the ecspi controller
 
 ---
