@@ -22,6 +22,11 @@ IMAGE_INSTALL += "\
 			packagegroup-base-bluetooth \
 			packagegroup-base-usbgadget \
 			packagegroup-base-usbhost \
+			gstreamer1.0-meta-base \
+			gstreamer1.0-meta-video \
+			gstreamer1.0-libav \
+			gstreamer1.0-plugins-bad-fbdevsink \
+			gstreamer1.0-plugins-bad-mpegpsdemux \
 			openssh-sftp \
 			openssh-sftp-server \
 			packagegroup-core-buildessential pkgconfig \
