@@ -1,7 +1,7 @@
 From 77510c6f2b0c875379899ad3c4a6de82abe6a844 Mon Sep 17 00:00:00 2001
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Date: Fri, 10 Jul 2015 15:28:10 +0900
-Subject: [PATCH 30/36] pwm: pca9685: Drop owner assignment
+Subject: [PATCH 30/37] pwm: pca9685: Drop owner assignment
 
 i2c_driver does not need to set an owner because i2c_register_driver()
 will set it.

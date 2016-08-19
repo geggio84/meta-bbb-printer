@@ -1,0 +1,27 @@
+From d8979bf4a6572b7c9f8c3ba9d4626aa31b3abe0b Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 15 Jun 2016 22:37:23 +0200
+Subject: [PATCH 37/37] Change rotary encoder button code to spacebar
+
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 8948e97..b7ac161 100755
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -86,8 +86,8 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 		button@0 {
+-			label = "Key ENTER";
+-			linux,code = <28>;
++			label = "Key SPACE";
++			linux,code = <57>;
+ 			gpios = <&gpio0 30 1>;
+ 		};
+ 	};
+-- 
+1.9.1
+

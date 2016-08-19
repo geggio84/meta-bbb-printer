@@ -1,7 +1,7 @@
 From af391af65a013ebc0bffa97dd59df5d3eef59165 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sun, 22 Nov 2015 22:15:43 +0100
-Subject: [PATCH 03/36] Add pwr-button for tps65217 pmic on beaglebone black
+Subject: [PATCH 03/37] Add pwr-button for tps65217 pmic on beaglebone black
 
 ---
  drivers/mfd/tps65217.c       | 121 ++++++++++++++++++++++++++++++++++++++++++-

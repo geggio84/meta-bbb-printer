@@ -1,7 +1,7 @@
 From 41116bb3f5e2402ab496841e566eb6d11e5f75f9 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 7 Mar 2016 21:59:56 +0100
-Subject: [PATCH 28/36] Fix disable hdmi clock oscillator
+Subject: [PATCH 28/37] Fix disable hdmi clock oscillator
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 8 +++++++-

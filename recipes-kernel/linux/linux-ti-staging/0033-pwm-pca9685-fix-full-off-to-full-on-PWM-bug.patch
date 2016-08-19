@@ -1,7 +1,7 @@
 From 45739714ca38b4b6d987c6f035490704b8042778 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 10 Mar 2016 15:08:42 +0100
-Subject: [PATCH 33/36] pwm-pca9685: fix full-off to full-on PWM bug
+Subject: [PATCH 33/37] pwm-pca9685: fix full-off to full-on PWM bug
 
 Since pwm-enable is called after pwm_config
 if full-on is set after full-off register LED_N_ON_H
