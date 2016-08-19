@@ -29,6 +29,7 @@ IMAGE_INSTALL += "\
 			cpufrequtils \
 			cairo pango fontconfig freetype pulseaudio dbus \
 			alsa-lib alsa-tools alsa-state alsa-utils-alsaconf \
+			ntp \
 			i2c-tools \
 			packagegroup-core-x11-xserver \
 			packagegroup-core-x11-utils \
