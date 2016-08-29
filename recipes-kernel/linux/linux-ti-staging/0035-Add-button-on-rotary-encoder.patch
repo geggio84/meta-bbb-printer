@@ -1,7 +1,7 @@
 From 83bd9e3c0ad9275d0e44428518d79439819bdc1f Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sat, 28 May 2016 13:04:36 +0200
-Subject: [PATCH 35/37] Add button on rotary encoder
+Subject: [PATCH 35/38] Add button on rotary encoder
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 11 +++++++++++

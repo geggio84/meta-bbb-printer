@@ -1,7 +1,7 @@
 From 71cc80d87f90a06332b9a69fd81326e14ef3839d Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 17:16:43 +0100
-Subject: [PATCH 13/37] defconfig enable NFS server support
+Subject: [PATCH 13/38] defconfig enable NFS server support
 
 ---
  arch/arm/configs/bbb_printer_defconfig | 5 ++++-

@@ -1,7 +1,7 @@
 From d519af7a5a8f318f9114ebfbc6ee67928fb3a119 Mon Sep 17 00:00:00 2001
 From: Clemens Gruber <clemens.gruber@pqgruber.com>
 Date: Thu, 23 Jul 2015 17:19:02 +0200
-Subject: [PATCH 32/37] pwm-pca9685: Support changing the output frequency
+Subject: [PATCH 32/38] pwm-pca9685: Support changing the output frequency
 
 Previously, period_ns and duty_ns were only used to determine the
 ratio of ON and OFF time, the default frequency of 200 Hz was never

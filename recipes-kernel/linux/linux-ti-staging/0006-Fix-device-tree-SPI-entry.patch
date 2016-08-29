@@ -1,7 +1,7 @@
 From 7e0353957ab948d67cb05f539de29aee22cf08ec Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 23 Nov 2015 23:33:15 +0100
-Subject: [PATCH 06/37] Fix device tree SPI entry
+Subject: [PATCH 06/38] Fix device tree SPI entry
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--

@@ -54,6 +54,7 @@ SRC_URI += "file://0034-Change-stepper-pins-muxing-to-PRU-direct-output.patch"
 SRC_URI += "file://0035-Add-button-on-rotary-encoder.patch"
 SRC_URI += "file://0036-w1-w1-term-change-w1-resolution-to-decrease-conversi.patch"
 SRC_URI += "file://0037-Change-rotary-encoder-button-code-to-spacebar.patch"
+SRC_URI += "file://0038-Undefine-DEBUG-for-pruss-remoteproc-module-driver.patch"
 SRC_URI += "file://defconfig"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-g_multi"

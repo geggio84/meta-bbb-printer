@@ -1,7 +1,7 @@
 From c9bb5d9c0b804765a99a961d91e285f26cc4b3aa Mon Sep 17 00:00:00 2001
 From: Clemens Gruber <clemens.gruber@pqgruber.com>
 Date: Thu, 23 Jul 2015 17:19:01 +0200
-Subject: [PATCH 31/37] pwm-pca9685: Fix several driver bugs
+Subject: [PATCH 31/38] pwm-pca9685: Fix several driver bugs
 
 Problems:
 - When duty_ns == period_ns, the full OFF bit was not cleared and the
