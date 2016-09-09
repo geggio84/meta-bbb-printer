@@ -37,4 +37,9 @@ IMAGE_INSTALL += "\
 			alsa-lib alsa-tools alsa-state alsa-utils-alsaconf \
 			i2c-tools \
 			libdrm \
+			ntp \
+			qt5-env \
+			nfs-exports \
+			pru-firmware \
+			tslib-conf tslib-tests tslib-calibrate tslib \
 			"
