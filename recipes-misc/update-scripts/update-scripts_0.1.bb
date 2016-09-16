@@ -20,7 +20,6 @@ SRC_URI = " \
 	file://update_rootfs.sh \
 	file://pwrbtncheck.sh \
 	file://pwrbtn.sh \
-	file://g_multi.conf \
 	"
 
 S = "${WORKDIR}"
@@ -41,7 +40,6 @@ do_install() {
 	install -p -m 0755 update_u-boot_sd.sh ${D}/home/root/
 	install -p -m 0755 update_rootfs.sh ${D}/home/root/
 	install -p -m 0755 update_ramdisk.sh ${D}/home/root/
-	install -p -m 0755 g_multi.conf ${D}${sysconfdir}/modules-load.d/
 
 	ln -sf ../init.d/pwrbtn.sh  ${D}${sysconfdir}/rcS.d/S90pwrbtn
 }
