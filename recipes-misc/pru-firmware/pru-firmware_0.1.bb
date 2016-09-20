@@ -7,6 +7,7 @@ S = "${WORKDIR}"
 
 SRC_URI = " \
 	file://PRU_Halt.out \
+	file://PRU_stepper.out \
 	"
 
 S = "${WORKDIR}"
@@ -16,8 +17,9 @@ do_install() {
 	install -d ${D}/lib/firmware
 
 	install -m 644 PRU_Halt.out ${D}/lib/firmware
+	install -m 644 PRU_stepper.out ${D}/lib/firmware
 
-	ln -sf PRU_Halt.out ${D}/lib/firmware/am335x-pru0-fw
+	ln -sf PRU_stepper.out ${D}/lib/firmware/am335x-pru0-fw
 	ln -sf PRU_Halt.out ${D}/lib/firmware/am335x-pru1-fw
 }
 
