@@ -1,7 +1,7 @@
-From fe519596c59576ebd4f6a8a0173e50ca4153de6f Mon Sep 17 00:00:00 2001
+From e49eef32ce5d2b2161ec396ceb367c06155ca871 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 13 Jun 2016 23:20:38 +0200
-Subject: [PATCH 36/38] w1: w1-term: change w1 resolution to decrease
+Subject: [PATCH 36/39] w1: w1-term: change w1 resolution to decrease
  conversion time to 96ms
 
 ---

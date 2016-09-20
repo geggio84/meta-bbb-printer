@@ -1,7 +1,7 @@
-From b97e2efdc3126cd079c8717ee1a13b26d76f1e7e Mon Sep 17 00:00:00 2001
+From d5d514e32674105bdec6d47a7724a01390b98760 Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Sat, 23 May 2015 21:13:44 -0500
-Subject: [PATCH 22/38] spi: omap2-mcspi: Fix GPIO chip select support
+Subject: [PATCH 22/39] spi: omap2-mcspi: Fix GPIO chip select support
 
 The OMAP2_MCSPI_CHCONF_FORCE must be toggled even when using GPIO
 chip selects. This patch conditionally calls the omap2_mcspi_set_cs

@@ -1,7 +1,7 @@
-From 94148cd0aecb29551761c5f64d5fef6314455b72 Mon Sep 17 00:00:00 2001
+From a89499c3f414815f8b899f6ced408c4210776468 Mon Sep 17 00:00:00 2001
 From: Michael Welling <mwelling@ieee.org>
 Date: Sat, 23 May 2015 21:13:45 -0500
-Subject: [PATCH 23/38] spi: omap2-mcspi: Handle error on gpio_request
+Subject: [PATCH 23/39] spi: omap2-mcspi: Handle error on gpio_request
 
 If a valid GPIO is specified but cannot be requested by the driver, print a
 message and error out of omap2_mcspi_setup.

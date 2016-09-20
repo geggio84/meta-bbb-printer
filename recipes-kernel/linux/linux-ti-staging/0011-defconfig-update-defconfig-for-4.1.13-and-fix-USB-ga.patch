@@ -1,7 +1,7 @@
-From 841f10e8d221b8d605847ba06e8f80c7ee2afaac Mon Sep 17 00:00:00 2001
+From c7d6b0b8f8cd2d5255a3e1558a5c4e8c1434d9e6 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Tue, 29 Dec 2015 19:07:44 +0100
-Subject: [PATCH 11/38] defconfig: update defconfig for 4.1.13 and fix USB
+Subject: [PATCH 11/39] defconfig: update defconfig for 4.1.13 and fix USB
  gadget
 
 ---

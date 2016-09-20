@@ -1,7 +1,7 @@
-From f6a74abc287880673005150b63762abe376a5f28 Mon Sep 17 00:00:00 2001
+From 8c63e93f949e47582f0ec19916f6a0bafd495c5a Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Thu, 7 Jan 2016 22:29:44 +0100
-Subject: [PATCH 14/38] Revert video color swap for 24 and 32 BIT
+Subject: [PATCH 14/39] Revert video color swap for 24 and 32 BIT
 
 ---
  drivers/video/fbdev/da8xx-fb.c | 8 ++++----

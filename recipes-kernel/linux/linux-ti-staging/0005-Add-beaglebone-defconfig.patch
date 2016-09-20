@@ -1,7 +1,7 @@
-From 0c96f5fff8ff06723ac96dcae388f609a43c8a12 Mon Sep 17 00:00:00 2001
+From 6fdb92e93d71255993b946dfc883ddd8e3f581e1 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Mon, 23 Nov 2015 20:20:13 +0100
-Subject: [PATCH 05/38] Add beaglebone defconfig
+Subject: [PATCH 05/39] Add beaglebone defconfig
 
 ---
  arch/arm/configs/beaglebone_defconfig | 4771 +++++++++++++++++++++++++++++++++

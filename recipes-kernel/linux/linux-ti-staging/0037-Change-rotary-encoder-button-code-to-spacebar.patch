@@ -1,7 +1,7 @@
-From d8979bf4a6572b7c9f8c3ba9d4626aa31b3abe0b Mon Sep 17 00:00:00 2001
+From d8378cef882386704f61eb0c9c5159cc0f518654 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Wed, 15 Jun 2016 22:37:23 +0200
-Subject: [PATCH 37/38] Change rotary encoder button code to spacebar
+Subject: [PATCH 37/39] Change rotary encoder button code to spacebar
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--

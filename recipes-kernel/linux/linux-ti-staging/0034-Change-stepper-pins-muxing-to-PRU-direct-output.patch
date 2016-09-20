@@ -1,7 +1,7 @@
-From 37a5914db26ebbf12b064646f4e6fa87c14ddda7 Mon Sep 17 00:00:00 2001
+From 4e1fab581ced09757956426c896f369324d1de4c Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Sat, 16 Apr 2016 09:34:30 +0200
-Subject: [PATCH 34/38] Change stepper pins muxing to PRU direct output
+Subject: [PATCH 34/39] Change stepper pins muxing to PRU direct output
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++--------

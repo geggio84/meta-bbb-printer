@@ -1,7 +1,7 @@
-From 407c910d8bfbd4b13d7635755b9d32ce25e70778 Mon Sep 17 00:00:00 2001
+From edc08654bcd1525b044979a86bb5d065fbc4c412 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
 Date: Fri, 8 Jan 2016 12:01:34 +0100
-Subject: [PATCH 16/38] Fix RGB Led strip color order
+Subject: [PATCH 16/39] Fix RGB Led strip color order
 
 ---
  arch/arm/boot/dts/am335x-bone-common.dtsi | 32 +++++++++++++++----------------
