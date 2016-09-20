@@ -69,4 +69,5 @@ IMAGE_INSTALL += "\
 			nfs-exports \
 			disable-x11-blanking \
 			pru-firmware \
+			bbb-marlin \
 			"

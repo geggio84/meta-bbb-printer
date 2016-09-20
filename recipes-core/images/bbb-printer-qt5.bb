@@ -43,4 +43,5 @@ IMAGE_INSTALL += "\
 			nfs-exports \
 			pru-firmware \
 			tslib-conf tslib-tests tslib-calibrate tslib \
+			bbb-marlin \
 			"
