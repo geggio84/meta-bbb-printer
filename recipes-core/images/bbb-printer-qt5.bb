@@ -39,6 +39,7 @@ IMAGE_INSTALL += "\
 			libdrm \
 			ntp \
 			qt5-env \
+			evtest \
 			nfs-exports \
 			pru-firmware \
 			tslib-conf tslib-tests tslib-calibrate tslib \
