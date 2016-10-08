@@ -33,6 +33,7 @@ IMAGE_INSTALL += "\
 			boost cmake zlib glib-2.0 \
 			ruby \
 			cpufrequtils \
+			valgrind \
 			cairo pango fontconfig freetype pulseaudio dbus \
 			alsa-lib alsa-tools alsa-state alsa-utils-alsaconf \
 			i2c-tools \
