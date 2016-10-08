@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 
-SRCREV = "dc7bbaa916a1c881a35be586873c7ff1ef24a9b2"
+SRCREV = "ebf76f824e724c77abb8a94412c88d1d6d72bcfb"
 SRCBRANCH="BB_Marlin"
 SRC_URI = "git://github.com/geggio84/Marlin.git;branch=${SRCBRANCH}"
 
