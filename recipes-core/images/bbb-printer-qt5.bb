@@ -4,7 +4,7 @@ LICENSE = "MIT"
 
 inherit core-image populate_sdk_qt5
 
-IMAGE_FEATURES += "package-management ssh-server-dropbear splash"
+IMAGE_FEATURES += "package-management ssh-server-openssh splash"
 
 IMAGE_INSTALL += "\
 			kernel-modules \
