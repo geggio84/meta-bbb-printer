@@ -7,8 +7,6 @@ PR = "0"
 
 S = "${WORKDIR}"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/linux-ti-staging:"
-
 SRC_URI = " \
 	file://update_kernel_emmc.sh \
 	file://update_kernel_sd.sh \
@@ -28,18 +26,18 @@ do_install() {
 
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${sysconfdir}/rcS.d
-	install -d ${D}/home/root
+	install -d ${D}/home/root/update_scripts
 
 	install -p -m 0755 pwrbtncheck.sh ${D}${sysconfdir}/init.d/
 	install -p -m 0755 pwrbtn.sh ${D}${sysconfdir}/init.d/
-	install -p -m 0755 update_kernel_emmc.sh ${D}/home/root/
-	install -p -m 0755 update_kernel_sd.sh ${D}/home/root/
-	install -p -m 0755 update_splash_emmc.sh ${D}/home/root/
-	install -p -m 0755 update_splash_sd.sh ${D}/home/root/
-	install -p -m 0755 update_u-boot_emmc.sh ${D}/home/root/
-	install -p -m 0755 update_u-boot_sd.sh ${D}/home/root/
-	install -p -m 0755 update_rootfs.sh ${D}/home/root/
-	install -p -m 0755 update_ramdisk.sh ${D}/home/root/
+	install -p -m 0755 update_kernel_emmc.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_kernel_sd.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_splash_emmc.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_splash_sd.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_u-boot_emmc.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_u-boot_sd.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_rootfs.sh ${D}/home/root/update_scripts/
+	install -p -m 0755 update_ramdisk.sh ${D}/home/root/update_scripts/
 
 	ln -sf ../init.d/pwrbtn.sh  ${D}${sysconfdir}/rcS.d/S90pwrbtn
 }
