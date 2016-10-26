@@ -1,0 +1,59 @@
+From 87132b6ad8f637424637c879f7a8f98de34f3cf2 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 19 Oct 2016 00:07:28 +0200
+Subject: [PATCH 4/7] w1: w1-term: change w1 resolution to decrease conversion
+ time to 96ms
+
+---
+ drivers/w1/slaves/w1_therm.c | 9 ++++++++-
+ drivers/w1/w1.h              | 1 +
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/w1/slaves/w1_therm.c
+ mode change 100644 => 100755 drivers/w1/w1.h
+
+diff --git a/drivers/w1/slaves/w1_therm.c b/drivers/w1/slaves/w1_therm.c
+old mode 100644
+new mode 100755
+index 8b5ff33..1fe2316
+--- a/drivers/w1/slaves/w1_therm.c
++++ b/drivers/w1/slaves/w1_therm.c
+@@ -185,6 +185,13 @@ static ssize_t w1_slave_show(struct device *device,
+ 	if (i != 0)
+ 		return i;
+ 
++	if (!w1_reset_select_slave(sl)) {
++		w1_write_8(dev, W1_WRITE_SCRATCHPAD);
++		w1_write_8(dev, 0x4B);
++		w1_write_8(dev, 0x46);
++		w1_write_8(dev, 0x1F);
++	}
++
+ 	memset(rom, 0, sizeof(rom));
+ 
+ 	while (max_trying--) {
+@@ -194,7 +201,7 @@ static ssize_t w1_slave_show(struct device *device,
+ 
+ 		if (!w1_reset_select_slave(sl)) {
+ 			int count = 0;
+-			unsigned int tm = 750;
++			unsigned int tm = 94;
+ 			unsigned long sleep_rem;
+ 
+ 			w1_write_8(dev, W1_READ_PSUPPLY);
+diff --git a/drivers/w1/w1.h b/drivers/w1/w1.h
+old mode 100644
+new mode 100755
+index ca8081a..0893df6
+--- a/drivers/w1/w1.h
++++ b/drivers/w1/w1.h
+@@ -52,6 +52,7 @@ struct w1_reg_num
+ #define W1_CONVERT_TEMP		0x44
+ #define W1_SKIP_ROM		0xCC
+ #define W1_READ_SCRATCHPAD	0xBE
++#define W1_WRITE_SCRATCHPAD	0x4E
+ #define W1_READ_ROM		0x33
+ #define W1_READ_PSUPPLY		0xB4
+ #define W1_MATCH_ROM		0x55
+-- 
+1.9.1
+

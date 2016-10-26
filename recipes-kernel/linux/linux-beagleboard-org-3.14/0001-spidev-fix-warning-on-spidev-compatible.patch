@@ -1,0 +1,27 @@
+From 5324ebe55323abe3e901d10b3426fd9b548aac92 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 19 Oct 2016 00:02:51 +0200
+Subject: [PATCH 1/7] spidev: fix warning on spidev compatible
+
+---
+ drivers/spi/spidev.c | 1 +
+ 1 file changed, 1 insertion(+)
+ mode change 100644 => 100755 drivers/spi/spidev.c
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+old mode 100644
+new mode 100755
+index 2fe5b61..2977b9d
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -648,6 +648,7 @@ static int spidev_remove(struct spi_device *spi)
+ 
+ static const struct of_device_id spidev_dt_ids[] = {
+ 	{ .compatible = "rohm,dh2228fv" },
++	{ .compatible = "spidev" },
+ 	{},
+ };
+ 
+-- 
+1.9.1
+
