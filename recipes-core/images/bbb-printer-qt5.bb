@@ -31,7 +31,6 @@ IMAGE_INSTALL += "\
 			openssh-sftp-server \
 			packagegroup-core-buildessential pkgconfig \
 			boost cmake zlib glib-2.0 \
-			ruby \
 			cpufrequtils \
 			valgrind \
 			cairo pango fontconfig freetype pulseaudio dbus \
