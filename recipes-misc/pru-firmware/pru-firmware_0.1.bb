@@ -20,7 +20,9 @@ do_install() {
 	install -m 644 PRU_stepper.out ${D}/lib/firmware
 
 	ln -sf PRU_stepper.out ${D}/lib/firmware/am335x-pru0-fw
+	ln -sf PRU_stepper.out ${D}/lib/firmware/rproc-pru0-fw
 	ln -sf PRU_Halt.out ${D}/lib/firmware/am335x-pru1-fw
+	ln -sf PRU_Halt.out ${D}/lib/firmware/rproc-pru0-fw
 }
 
 FILES_${PN} = "/lib/firmware/*"
