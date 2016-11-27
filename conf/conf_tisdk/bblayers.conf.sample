@@ -1,0 +1,19 @@
+# LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
+# changes incompatibly
+LCONF_VERSION = "6"
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+BBLAYERS ?= " \
+	##COREBASE##/meta-processor-sdk \
+	##COREBASE##/meta-arago/meta-arago-distro \
+	##COREBASE##/meta-arago/meta-arago-extras \
+	##COREBASE##/meta-qt5 \
+	##COREBASE##/meta-openembedded/meta-networking \
+	##COREBASE##/meta-openembedded/meta-ruby \
+	##COREBASE##/meta-openembedded/meta-python \
+	##COREBASE##/meta-openembedded/meta-oe \
+	##COREBASE##/meta-ti \
+	##COREBASE##/meta-linaro/meta-linaro-toolchain \
+	##COREBASE##/oe-core/meta \
+"
