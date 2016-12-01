@@ -5,6 +5,7 @@ LCONF_VERSION = "6"
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 BBLAYERS ?= " \
+	##COREBASE##/meta-bbb-printer \
 	##COREBASE##/meta-processor-sdk \
 	##COREBASE##/meta-arago/meta-arago-distro \
 	##COREBASE##/meta-arago/meta-arago-extras \
