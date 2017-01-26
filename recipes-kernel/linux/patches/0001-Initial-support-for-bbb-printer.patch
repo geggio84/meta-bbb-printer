@@ -1,0 +1,2252 @@
+From b18c4bfdb264213a454de8069ff7618e27b7d97b Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Fri, 9 Dec 2016 14:44:02 +0100
+Subject: [PATCH] Initial-support-for-bbb-printer
+
+---
+ arch/arm/boot/dts/bbb-printer.dts          | 472 +++++++++++++++++++++
+ arch/arm/configs/am335x_evm_defconfig      |   1 +
+ arch/arm/configs/bbb_printer_defconfig     | 633 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   2 +-
+ drivers/mfd/tps65217.c                     | 121 +++++-
+ drivers/pwm/pwm-pca9685.c                  | 103 ++++-
+ drivers/spi/spi-omap2-mcspi.c              | 280 ++++++-------
+ drivers/spi/spidev.c                       |   1 +
+ drivers/video/fbdev/da8xx-fb.c             | 110 ++++-
+ drivers/w1/slaves/w1_therm.c               |  12 +-
+ drivers/w1/w1.h                            |   1 +
+ include/linux/mfd/tps65217.h               |   6 +
+ 12 files changed, 1578 insertions(+), 164 deletions(-)
+ create mode 100755 arch/arm/boot/dts/bbb-printer.dts
+ create mode 100644 arch/arm/configs/am335x_evm_defconfig
+ create mode 100755 arch/arm/configs/bbb_printer_defconfig
+ mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+ mode change 100644 => 100755 drivers/mfd/tps65217.c
+ mode change 100644 => 100755 drivers/pwm/pwm-pca9685.c
+ mode change 100644 => 100755 drivers/spi/spi-omap2-mcspi.c
+ mode change 100644 => 100755 drivers/spi/spidev.c
+ mode change 100644 => 100755 drivers/video/fbdev/da8xx-fb.c
+ mode change 100644 => 100755 drivers/w1/slaves/w1_therm.c
+ mode change 100644 => 100755 drivers/w1/w1.h
+ mode change 100644 => 100755 include/linux/mfd/tps65217.h
+
+diff --git a/arch/arm/boot/dts/bbb-printer.dts b/arch/arm/boot/dts/bbb-printer.dts
+new file mode 100755
+index 0000000..3c6a262
+--- /dev/null
++++ b/arch/arm/boot/dts/bbb-printer.dts
+@@ -0,0 +1,472 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include "am335x-bone-common.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone Black 3d Printer";
++	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++
++	vin: fixedregulator@1 {
++		compatible = "regulator-fixed";
++		regulator-name = "vin";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
++	};
++
++	power_led {
++		pinctrl-names = "default";
++		pinctrl-0 = <&ext_gpio_pin>;
++
++		compatible = "gpio-leds";
++
++		led@6 {
++			label = "beaglebone:blue:ledPWR";
++			gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++			default-state = "on";
++		};
++	};
++
++	rotary@0 {
++		compatible = "rotary-encoder";
++		gpios = <&gpio1 28 0>, <&gpio0 31 0>;
++		linux,axis = <0>; /* REL_X */
++		rotary-encoder,relative-axis;
++	};
++
++	gpio_keys@0 {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		button@0 {
++			label = "Key SPACE";
++			linux,code = <57>;
++			gpios = <&gpio0 30 1>;
++		};
++	};
++
++	pwmleds {
++		compatible = "pwm-leds";
++		extruder {
++			pwms = <&pca9685 7 5000000>;
++			pwm-names = "extruder";
++		};
++		hotbed {
++			pwms = <&pca9685 6 5000000>;
++			pwm-names = "hotbed";
++		};
++
++		fan_1 {
++			pwms = <&pca9685 1 5000000>;
++			pwm-names = "fan_1";
++		};
++		fan_2 {
++			pwms = <&pca9685 4 5000000>;
++			pwm-names = "fan_2";
++		};
++		fan_3 {
++			pwms = <&pca9685 3 5000000>;
++			pwm-names = "fan_3";
++		};
++		fan_4 {
++			pwms = <&pca9685 2 5000000>;
++			pwm-names = "fan_4";
++		};
++
++		blue_0 {
++			pwms = <&pca9685 10 5000000>;
++			pwm-names = "blue_0";
++		};
++		red_0 {
++			pwms = <&pca9685 11 5000000>;
++			pwm-names = "red_0";
++		};
++		green_0 {
++			pwms = <&pca9685 12 5000000>;
++			pwm-names = "green_0";
++		};
++		blue_1 {
++			pwms = <&pca9685 0 5000000>;
++			pwm-names = "blue_1";
++		};
++		red_1 {
++			pwms = <&pca9685 8 5000000>;
++			pwm-names = "red_1";
++		};
++		green_1 {
++			pwms = <&pca9685 9 5000000>;
++			pwm-names = "green_1";
++		};
++		blue_2 {
++			pwms = <&pca9685 13 5000000>;
++			pwm-names = "blue_2";
++		};
++		red_2 {
++			pwms = <&pca9685 14 5000000>;
++			pwm-names = "red_2";
++		};
++		green_2 {
++			pwms = <&pca9685 15 5000000>;
++			pwm-names = "green_2";
++		};
++	};
++
++	panel {
++		compatible = "ti,tilcdc,panel";
++		status = "okay";
++		panel-info {
++			ac-bias           = <255>;
++			ac-bias-intrpt    = <0>;
++			dma-burst-sz      = <16>;
++			bpp               = <16>;
++			fdd               = <0x80>;
++			sync-edge         = <0>;
++			sync-ctrl         = <1>;
++			raster-order      = <0>;
++			fifo-th           = <0>;
++		};
++
++		display-timings {
++			480x272p57 {
++				clock-frequency = <9000000>;
++				hactive = <480>;
++				vactive = <272>;
++				hfront-porch = <9>;
++				hback-porch = <44>;
++				hsync-len = <5>;
++				vback-porch = <13>;
++				vfront-porch = <4>;
++				vsync-len = <10>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++			};
++		};
++	};
++
++	backlight {
++		compatible = "pwm-backlight";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pwm_bl_pins>;
++
++		pwms = <&ehrpwm1 0 500000 0>;
++		brightness-levels = <0 58 61 66 75 90 125 170 255>;
++		default-brightness-level = <4>;
++		status = "okay";
++	};
++
++	onewire_0@0 {
++		compatible = "w1-gpio";
++		pinctrl-names = "default";
++		pinctrl-0 = <&onewire_0_pins>;
++		gpios = <&gpio1 19 0>;
++	};
++
++	onewire_1@0 {
++		compatible = "w1-gpio";
++		pinctrl-names = "default";
++		pinctrl-0 = <&onewire_1_pins>;
++		gpios = <&gpio3 19 0>;
++	};
++
++	spi_gpio {
++		compatible = "spi-gpio";
++		pinctrl-names = "default";
++		pinctrl-0 = <&spi0_pins>;
++		#address-cells = <0x1>;
++		#size-cells = <0x0>;
++
++		gpio-sck = <&gpio0 2 0>;
++		gpio-miso = <&gpio0 3 0>;
++		gpio-mosi = <&gpio0 4 0>;
++		cs-gpios = <&gpio0 5 0>, <&gpio0 13 0>, <&gpio0 12 0>, <&gpio1 17 0>, <&gpio0 7 0>;
++		num-chipselects = <5>;
++		status = "okay";
++
++		ads7843@0 {
++			compatible = "ti,ads7846";
++			reg = <0>; // CHIPSEL
++			spi-max-frequency = <100000>;
++			mode = <0>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&XPT2046_pins>;
++
++			interrupt-parent = <&gpio1>;
++			interrupts = <29 0>;
++			pendown-gpio = <&gpio1 29 0>;
++			ti,pendown-gpio-debounce = <50>;
++
++			vcc-supply = <&vin>;
++			ti,x-min = <0>;
++			ti,x-max = <4000>;
++			ti,y-min = <0>;
++			ti,y-max = <4000>;
++			ti,x-plate-ohms = <750>;
++			ti,y-plate-ohms = <230>;
++			ti,pressure-min = <1000>;
++			ti,pressure-max = <15000>;
++			ti,settle-delay-usec = <150>;
++			ti,debounce-max = <5>;
++			ti,debounce-tol = <65535>;
++			ti,vref-delay-usecs = <450>;
++
++			linux,wakeup;
++		};
++
++		stepper_x@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "spidev";
++			spi-max-frequency = <100000>;
++			reg = <1>;
++		};
++
++		stepper_y@2 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "spidev";
++			spi-max-frequency = <100000>;
++			reg = <2>;
++		};
++
++		stepper_z@3 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "spidev";
++			spi-max-frequency = <100000>;
++			reg = <3>;
++		};
++
++		stepper_e@4 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			compatible = "spidev";
++			spi-max-frequency = <100000>;
++			reg = <4>;
++		};
++	};
++};
++
++&tps {
++	interrupt-parent = <&intc>;
++	interrupts = <7>;	/* NNMI */
++};
++
++&i2c1 {
++	status = "okay";
++	clock-frequency = <200000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	pca9685: pca9685@40 {
++		compatible = "nxp,pca9685-pwm";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pca9685_pins>;
++		#pwm-cells = <2>;
++		reg = <0x40>;
++		status = "okay";
++	};
++
++	ds1340: rtc@68 {
++		compatible = "maxim,ds1340";
++		trickle-resistor-ohms = <250>;
++		reg = <0x68>;
++	};
++};
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default"; 
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&sgx {
++	status = "okay";
++};
++
++&tscadc {
++	status = "okay";
++	adc{
++		ti,adc-channels = <0 1 2 3 4 5 6 7>;
++	};
++};
++
++&edma {
++	ti,edma-xbar-event-map = <32 12>,	/* gpevt2 -> 12 */
++							<30 20>;	/* xdma_event_intr2 -> 20 */
++};
++
++&epwmss1 {
++	status = "okay";
++};
++
++&ehrpwm1 {
++	status = "okay";
++};
++
++&lcdc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&lcd_pins>;
++	status = "okay";
++	u-boot-config;
++	fb-baseaddr = <0x9FC00000>;
++	fb-size-MB = <0x00000004>;
++};
++
++&am33xx_pinmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <&hdmiclk_pin_dis &clkout2_pin_dis &stepper_pins &endstop_pins &frontpanel_button_pin &frontpanel_encoder_pins>;
++
++	stepper_pins: pinmux_stepper_pins {
++		pinctrl-single,pins = <
++			0x1AC (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_ahclkx.pr1_pru0_pru_r30[7], DIR X */
++			0x030 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_ad12.pr1_pru0_pru_r30[14], STEP X */
++			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_aclkx.pr1_pru0_pru_r30[0], DIR Y */
++			0x034 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_ad13.pr1_pru0_pru_r30[15], STEP Y */
++			0x1A8 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_axr1.pr1_pru0_pru_r30[6], DIR Z */
++			0x19C (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_ahclkr.pr1_pru0_pru_r30[3], STEP Z */
++			0x194 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_fsx.pr1_pru0_pru_r30[1], DIR E */
++			0x198 (PIN_OUTPUT_PULLDOWN | MUX_MODE5) /* mcasp0_axr0.pr1_pru0_pru_r30[2], STEP E */
++			0x038 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ad14.gpio1_14, FLAG */
++			0x03C (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad15.gpio1_15, Reset_n */
++		>;
++	};
++
++	endstop_pins: pinmux_endstop_pins {
++		pinctrl-single,pins = <
++			0x090 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_advn_ale.gpio2_2, END X1 */
++			0x094 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_oen_ren.gpio2_3, END X2 */
++			0x09C (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ben0_cle.gpio2_5, END Y1 */
++			0x098 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_wen.gpio2_4, END Y2 */
++			0x024 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ad9.gpio0_23, END Z1 */
++			0x028 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ad10.gpio0_26, END Z2 */
++		>;
++	};
++
++	frontpanel_button_pin: pinmux_frontpanel_button_pin {
++		pinctrl-single,pins = <
++			0x070 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_wait0.gpio0_30, ENC_SW */
++		>;
++	};
++
++	frontpanel_encoder_pins: pinmux_frontpanel_encoder_pins {
++		pinctrl-single,pins = <
++			0x078 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_ben1.gpio1_28, ENC_A */
++			0x074 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_wpn.gpio0_31, ENC_B */
++		>;
++	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x184 (PIN_INPUT_PULLUP | MUX_MODE3) /* uart1_txd.i2c1_scl, I2C1_SCL */
++			0x180 (PIN_INPUT_PULLUP | MUX_MODE3) /* uart1_rxd.i2c1_sda, I2C1_SDA */
++		>;
++	};
++
++	pwm_bl_pins: pinmux_pwm_bl_pins {
++		pinctrl-single,pins = <
++			0x048 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_a2.ehrpwm1a, LCD_PWM_BL */
++		>;
++	};
++
++	spi0_pins: pinmux_spi0_pins {
++		pinctrl-single,pins = <
++			0x158 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* spi0_d1.gpio0_4, SPI0_D1 */
++			0x154 (PIN_INPUT_PULLUP | MUX_MODE7) /* spi0_d0.gpio0_3, SPI0_D0 */
++			0x150 (PIN_INPUT_PULLUP | MUX_MODE7) /* spi0_sclk.gpio0_2, SPI0_CLK */
++			0x15C (PIN_OUTPUT_PULLUP | MUX_MODE7) /* spi0_cs0.gpio0_5, SPI0_CS0 */
++			0x17C (PIN_OUTPUT_PULLUP | MUX_MODE7) /* uart1_rtsn.gpio0_13, SPI0_CS1 */
++			0x178 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* uart1_ctsn.gpio0_12, SPI0_CS2 */
++			0x044 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_a1.gpio1_17, SPI0_CS3 */
++			0x164 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* eCAP0_in_PWM0_out.gpio0_7, SPI0_CS4 */
++		>;
++	};
++
++	onewire_0_pins: pinmux_onewire_0_pins {
++		pinctrl-single,pins = <
++			0x04C (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_a3.gpio1_19, 1wire_0 */
++		>;
++	};
++
++	onewire_1_pins: pinmux_onewire_1_pins {
++		pinctrl-single,pins = <
++			0x1A4 (PIN_INPUT_PULLUP | MUX_MODE7) /* mcasp0_fsr.gpio3_19, 1wire_1 */
++		>;
++	};
++
++	XPT2046_pins: pinmux_XPT2046_pins {
++		pinctrl-single,pins = <
++			0x07C (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_csn0.gpio1_29, SPI0_TS_IRQ */
++			0x020 (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_ad8.gpio0_22, LCD_TS_BUSY */
++		>;
++	};
++
++	ext_gpio_pin: pinmux_ext_gpio_pin {
++		pinctrl-single,pins = <
++			0x40 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a0.gpio1_16, EXT_GPIO */
++		>;
++	};
++
++	clkout2_pin_dis: pinmux_clkout2_pin_dis {
++		pinctrl-single,pins = <
++			0x1b4 (PIN_INPUT | MUX_MODE7)		/* xdma_event_intr1.gpio0_20 */
++		>;
++	};
++
++	hdmiclk_pin_dis: pinmux_hdmiclk_pin_dis {
++		pinctrl-single,pins = <
++			0x06c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.GPIO1_27 */
++		>;
++	};
++
++	pca9685_pins: pinmux_pca9685_pins {
++		pinctrl-single,pins = <
++			0x02C (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_ad11.gpio0_27, PWM_OEn */
++		>;
++	};
++
++	lcd_pins: pinmux_lcd_pins {
++		pinctrl-single,pins = <
++			0x0a0 (PIN_OUTPUT | MUX_MODE0) /* lcd_data0.lcd_data0, LCD_D0 */
++			0x0a4 (PIN_OUTPUT | MUX_MODE0) /* lcd_data1.lcd_data1, LCD_D1 */
++			0x0a8 (PIN_OUTPUT | MUX_MODE0) /* lcd_data2.lcd_data2, LCD_D2 */
++			0x0ac (PIN_OUTPUT | MUX_MODE0) /* lcd_data3.lcd_data3, LCD_D3 */
++			0x0b0 (PIN_OUTPUT | MUX_MODE0) /* lcd_data4.lcd_data4, LCD_D4 */
++			0x0b4 (PIN_OUTPUT | MUX_MODE0) /* lcd_data5.lcd_data5, LCD_D5 */
++			0x0b8 (PIN_OUTPUT | MUX_MODE0) /* lcd_data6.lcd_data6, LCD_D6 */
++			0x0bc (PIN_OUTPUT | MUX_MODE0) /* lcd_data7.lcd_data7, LCD_D7 */
++			0x0c0 (PIN_OUTPUT | MUX_MODE0) /* lcd_data8.lcd_data8, LCD_D8 */
++			0x0c4 (PIN_OUTPUT | MUX_MODE0) /* lcd_data9.lcd_data9, LCD_D9 */
++			0x0c8 (PIN_OUTPUT | MUX_MODE0) /* lcd_data10.lcd_data10, LCD_D10 */
++			0x0cc (PIN_OUTPUT | MUX_MODE0) /* lcd_data11.lcd_data11, LCD_D11 */
++			0x0d0 (PIN_OUTPUT | MUX_MODE0) /* lcd_data12.lcd_data12, LCD_D12 */
++			0x0d4 (PIN_OUTPUT | MUX_MODE0) /* lcd_data13.lcd_data13, LCD_D13 */
++			0x0d8 (PIN_OUTPUT | MUX_MODE0) /* lcd_data14.lcd_data14, LCD_D14 */
++			0x0dc (PIN_OUTPUT | MUX_MODE0) /* lcd_data15.lcd_data15, LCD_D15 */
++			0x0e0 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* lcd_vsync.lcd_vsync, LCD_VSYNC */
++			0x0e4 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* lcd_hsync.lcd_hsync, LCD_HSYNC */
++			0x0e8 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* lcd_pclk.lcd_pclk, LCD_PCLK */
++			0x0ec (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* lcd_ac_bias_en.lcd_ac_bias_en, LCD_AC_BIAS_EN */
++			0x08C (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpmc_clk_mux0.gpio2_1, LCD_DISP */
++		>;
++	};
++};
+diff --git a/arch/arm/configs/am335x_evm_defconfig b/arch/arm/configs/am335x_evm_defconfig
+new file mode 100644
+index 0000000..990e7f7
+--- /dev/null
++++ b/arch/arm/configs/am335x_evm_defconfig
+@@ -0,0 +1 @@
++use-combined-config=ti_config_fragments/defconfig_fragment
+diff --git a/arch/arm/configs/bbb_printer_defconfig b/arch/arm/configs/bbb_printer_defconfig
+new file mode 100755
+index 0000000..85c9ac4
+--- /dev/null
++++ b/arch/arm/configs/bbb_printer_defconfig
+@@ -0,0 +1,633 @@
++CONFIG_KERNEL_LZMA=y
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_FHANDLE=y
++CONFIG_AUDIT=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_LOG_BUF_SHIFT=16
++CONFIG_CGROUPS=y
++CONFIG_CGROUP_FREEZER=y
++CONFIG_CGROUP_DEVICE=y
++CONFIG_CPUSETS=y
++CONFIG_CGROUP_CPUACCT=y
++CONFIG_MEMCG=y
++CONFIG_MEMCG_SWAP=y
++CONFIG_MEMCG_KMEM=y
++CONFIG_CGROUP_PERF=y
++CONFIG_CGROUP_SCHED=y
++CONFIG_CFS_BANDWIDTH=y
++CONFIG_RT_GROUP_SCHED=y
++CONFIG_BLK_CGROUP=y
++CONFIG_NAMESPACES=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_EXPERT=y
++CONFIG_KALLSYMS_ALL=y
++# CONFIG_SLUB_DEBUG is not set
++CONFIG_PROFILING=y
++CONFIG_OPROFILE=y
++CONFIG_KPROBES=y
++CONFIG_JUMP_LABEL=y
++CONFIG_MODULES=y
++CONFIG_MODULE_FORCE_LOAD=y
++CONFIG_MODULE_UNLOAD=y
++CONFIG_MODULE_FORCE_UNLOAD=y
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++# CONFIG_BLK_DEV_BSG is not set
++CONFIG_PARTITION_ADVANCED=y
++CONFIG_ARCH_MULTI_V6=y
++CONFIG_OMAP_RESET_CLOCKS=y
++CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_SOC_AM33XX=y
++CONFIG_SOC_HAS_OMAP2_SDRC=y
++CONFIG_AMX3_PM=m
++CONFIG_ARM_THUMBEE=y
++CONFIG_SWP_EMULATE=y
++CONFIG_PL310_ERRATA_588369=y
++CONFIG_PL310_ERRATA_727915=y
++CONFIG_ARM_ERRATA_411920=y
++CONFIG_ARM_ERRATA_430973=y
++CONFIG_ARM_ERRATA_720789=y
++CONFIG_ARM_ERRATA_754322=y
++CONFIG_ARM_ERRATA_775420=y
++CONFIG_PCI=y
++CONFIG_PCI_DRA7XX=y
++CONFIG_HAVE_ARM_ARCH_TIMER=y
++CONFIG_PREEMPT=y
++CONFIG_CMA=y
++CONFIG_SECCOMP=y
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_ARM_APPENDED_DTB=y
++CONFIG_ARM_ATAG_DTB_COMPAT=y
++CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
++CONFIG_KEXEC=y
++CONFIG_CPU_FREQ=y
++CONFIG_CPU_FREQ_STAT_DETAILS=y
++CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
++CONFIG_CPU_FREQ_GOV_POWERSAVE=y
++CONFIG_CPU_FREQ_GOV_USERSPACE=y
++CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
++CONFIG_CPUFREQ_DT=m
++CONFIG_CPUFREQ_VOLTDM=y
++# CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
++CONFIG_CPU_IDLE=y
++CONFIG_BINFMT_MISC=y
++CONFIG_PM_DEBUG=y
++CONFIG_NET=y
++CONFIG_PACKET=y
++CONFIG_UNIX=y
++CONFIG_XFRM_USER=y
++CONFIG_NET_KEY=y
++CONFIG_NET_KEY_MIGRATE=y
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++CONFIG_INET_ESP=m
++# CONFIG_INET_LRO is not set
++CONFIG_INET6_AH=m
++CONFIG_INET6_IPCOMP=m
++CONFIG_IPV6_TUNNEL=m
++CONFIG_NETFILTER=y
++CONFIG_NF_CONNTRACK=m
++CONFIG_NETFILTER_XT_TARGET_CLASSIFY=m
++CONFIG_NETFILTER_XT_TARGET_IDLETIMER=m
++CONFIG_NETFILTER_XT_TARGET_MARK=m
++CONFIG_NETFILTER_XT_MATCH_COMMENT=m
++CONFIG_NETFILTER_XT_MATCH_CPU=m
++CONFIG_NETFILTER_XT_MATCH_IPRANGE=m
++CONFIG_NETFILTER_XT_MATCH_LENGTH=m
++CONFIG_NETFILTER_XT_MATCH_LIMIT=m
++CONFIG_NETFILTER_XT_MATCH_MAC=m
++CONFIG_NETFILTER_XT_MATCH_MARK=m
++CONFIG_NETFILTER_XT_MATCH_MULTIPORT=m
++CONFIG_NETFILTER_XT_MATCH_PKTTYPE=m
++CONFIG_NF_CONNTRACK_IPV4=m
++CONFIG_NF_NAT_IPV4=m
++CONFIG_IP_NF_IPTABLES=m
++CONFIG_IP_NF_FILTER=m
++CONFIG_IP_NF_ARPTABLES=m
++CONFIG_IP_NF_ARPFILTER=m
++CONFIG_IP_NF_ARP_MANGLE=m
++CONFIG_BRIDGE_NF_EBTABLES=m
++CONFIG_BRIDGE_EBT_BROUTE=m
++CONFIG_BRIDGE_EBT_T_FILTER=m
++CONFIG_BRIDGE_EBT_T_NAT=m
++CONFIG_BRIDGE_EBT_802_3=m
++CONFIG_BRIDGE_EBT_AMONG=m
++CONFIG_BRIDGE_EBT_ARP=m
++CONFIG_BRIDGE_EBT_IP=m
++CONFIG_BRIDGE_EBT_IP6=m
++CONFIG_BRIDGE_EBT_LIMIT=m
++CONFIG_BRIDGE_EBT_MARK=m
++CONFIG_BRIDGE_EBT_PKTTYPE=m
++CONFIG_BRIDGE_EBT_STP=m
++CONFIG_BRIDGE_EBT_VLAN=m
++CONFIG_BRIDGE_EBT_ARPREPLY=m
++CONFIG_BRIDGE_EBT_DNAT=m
++CONFIG_BRIDGE_EBT_MARK_T=m
++CONFIG_BRIDGE_EBT_REDIRECT=m
++CONFIG_BRIDGE_EBT_SNAT=m
++CONFIG_BRIDGE_EBT_LOG=m
++CONFIG_BRIDGE_EBT_NFLOG=m
++CONFIG_IP_SCTP=m
++CONFIG_BRIDGE=m
++CONFIG_VLAN_8021Q=m
++CONFIG_PHONET=m
++CONFIG_NET_SCHED=y
++CONFIG_NET_SCH_CBQ=m
++CONFIG_NET_SCH_HTB=m
++CONFIG_NET_SCH_HFSC=m
++CONFIG_NET_SCH_PRIO=m
++CONFIG_NET_SCH_MULTIQ=m
++CONFIG_NET_SCH_RED=m
++CONFIG_NET_SCH_SFB=m
++CONFIG_NET_SCH_SFQ=m
++CONFIG_NET_SCH_TEQL=m
++CONFIG_NET_SCH_TBF=m
++CONFIG_NET_SCH_GRED=m
++CONFIG_NET_SCH_DSMARK=m
++CONFIG_NET_SCH_NETEM=m
++CONFIG_NET_SCH_DRR=m
++CONFIG_NET_SCH_MQPRIO=m
++CONFIG_NET_SCH_CHOKE=m
++CONFIG_NET_SCH_QFQ=m
++CONFIG_NET_SCH_CODEL=m
++CONFIG_NET_SCH_FQ_CODEL=m
++CONFIG_NET_SCH_INGRESS=m
++CONFIG_NET_CLS_BASIC=m
++CONFIG_NET_CLS_TCINDEX=m
++CONFIG_NET_CLS_ROUTE4=m
++CONFIG_NET_CLS_FW=m
++CONFIG_NET_CLS_U32=m
++CONFIG_CLS_U32_MARK=y
++CONFIG_NET_CLS_RSVP=m
++CONFIG_NET_CLS_RSVP6=m
++CONFIG_NET_CLS_FLOW=m
++CONFIG_NET_EMATCH=y
++CONFIG_NET_EMATCH_CMP=m
++CONFIG_NET_EMATCH_NBYTE=m
++CONFIG_NET_EMATCH_U32=m
++CONFIG_NET_EMATCH_META=m
++CONFIG_NET_EMATCH_TEXT=m
++CONFIG_NET_CLS_ACT=y
++CONFIG_NET_ACT_POLICE=m
++CONFIG_NET_ACT_GACT=m
++CONFIG_GACT_PROB=y
++CONFIG_NET_ACT_MIRRED=m
++CONFIG_NET_ACT_IPT=m
++CONFIG_NET_ACT_NAT=m
++CONFIG_NET_ACT_PEDIT=m
++CONFIG_NET_ACT_SIMP=m
++CONFIG_NET_ACT_SKBEDIT=m
++CONFIG_NET_ACT_CSUM=m
++CONFIG_NET_CLS_IND=y
++CONFIG_CAN=m
++CONFIG_CAN_C_CAN=m
++CONFIG_CAN_C_CAN_PLATFORM=m
++CONFIG_BT=m
++CONFIG_BT_RFCOMM=m
++CONFIG_BT_RFCOMM_TTY=y
++CONFIG_BT_BNEP=m
++CONFIG_BT_BNEP_MC_FILTER=y
++CONFIG_BT_BNEP_PROTO_FILTER=y
++CONFIG_BT_HIDP=m
++CONFIG_BT_HCIBTUSB=m
++CONFIG_BT_HCIBTSDIO=m
++CONFIG_BT_HCIUART=m
++CONFIG_BT_HCIUART_H4=y
++CONFIG_BT_HCIUART_BCSP=y
++CONFIG_BT_HCIUART_LL=y
++CONFIG_BT_HCIUART_3WIRE=y
++CONFIG_BT_HCIBCM203X=m
++CONFIG_BT_HCIBPA10X=m
++CONFIG_BT_HCIBFUSB=m
++CONFIG_BT_HCIVHCI=m
++CONFIG_BT_MRVL=m
++CONFIG_BT_MRVL_SDIO=m
++CONFIG_BT_WILINK=m
++CONFIG_AF_RXRPC=m
++CONFIG_RXKAD=m
++CONFIG_CFG80211=m
++CONFIG_MAC80211=m
++CONFIG_DEVTMPFS=y
++CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_FW_LOADER_USER_HELPER_FALLBACK=y
++CONFIG_DMA_CMA=y
++CONFIG_CMA_SIZE_MBYTES=24
++CONFIG_OMAP_INTERCONNECT=y
++CONFIG_OMAP_OCP2SCP=y
++CONFIG_CONNECTOR=y
++CONFIG_MTD=y
++CONFIG_MTD_TESTS=m
++CONFIG_MTD_CMDLINE_PARTS=y
++CONFIG_MTD_BLOCK=y
++CONFIG_MTD_OOPS=y
++CONFIG_MTD_CFI=y
++CONFIG_MTD_CFI_INTELEXT=y
++CONFIG_MTD_PHYSMAP=y
++CONFIG_MTD_PHYSMAP_OF=y
++CONFIG_MTD_M25P80=m
++CONFIG_MTD_NAND=y
++CONFIG_MTD_NAND_ECC_BCH=y
++CONFIG_MTD_NAND_OMAP2=y
++CONFIG_MTD_NAND_OMAP_BCH=y
++CONFIG_MTD_ONENAND=y
++CONFIG_MTD_ONENAND_VERIFY_WRITE=y
++CONFIG_MTD_SPI_NOR=m
++CONFIG_MTD_UBI=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_SIZE=16384
++CONFIG_SENSORS_TSL2550=m
++CONFIG_BMP085_I2C=m
++CONFIG_SRAM=y
++CONFIG_TI_ST=m
++CONFIG_SENSORS_LIS3_I2C=m
++CONFIG_SCSI=y
++CONFIG_BLK_DEV_SD=y
++CONFIG_SCSI_SCAN_ASYNC=y
++CONFIG_NETDEVICES=y
++# CONFIG_NET_VENDOR_ARC is not set
++# CONFIG_NET_CADENCE is not set
++CONFIG_TIGON3=m
++# CONFIG_NET_VENDOR_CIRRUS is not set
++# CONFIG_NET_VENDOR_FARADAY is not set
++# CONFIG_NET_VENDOR_HISILICON is not set
++CONFIG_E1000=m
++CONFIG_E1000E=m
++CONFIG_SKGE=m
++CONFIG_KS8851=y
++CONFIG_KS8851_MLL=y
++# CONFIG_NET_VENDOR_MICROCHIP is not set
++# CONFIG_NET_VENDOR_NATSEMI is not set
++# CONFIG_NET_VENDOR_QUALCOMM is not set
++# CONFIG_NET_VENDOR_SAMSUNG is not set
++# CONFIG_NET_VENDOR_SEEQ is not set
++CONFIG_SMC91X=y
++CONFIG_SMSC911X=y
++# CONFIG_NET_VENDOR_STMICRO is not set
++CONFIG_TI_CPSW=y
++CONFIG_TI_CPTS=y
++# CONFIG_NET_VENDOR_VIA is not set
++# CONFIG_NET_VENDOR_WIZNET is not set
++CONFIG_AT803X_PHY=y
++CONFIG_SMSC_PHY=y
++CONFIG_USB_USBNET=m
++CONFIG_USB_NET_SMSC95XX=m
++CONFIG_USB_ALI_M5632=y
++CONFIG_USB_AN2720=y
++CONFIG_USB_EPSON2888=y
++CONFIG_USB_KC2190=y
++CONFIG_USB_CDC_PHONET=m
++CONFIG_IWLWIFI=m
++CONFIG_LIBERTAS=m
++CONFIG_LIBERTAS_USB=m
++CONFIG_LIBERTAS_SDIO=m
++CONFIG_LIBERTAS_DEBUG=y
++CONFIG_WL_TI=y
++CONFIG_WL12XX=m
++CONFIG_WL18XX=m
++CONFIG_WLCORE_SPI=m
++CONFIG_WLCORE_SDIO=m
++CONFIG_MWIFIEX=m
++CONFIG_MWIFIEX_SDIO=m
++CONFIG_MWIFIEX_USB=m
++CONFIG_INPUT_FF_MEMLESS=y
++CONFIG_INPUT_JOYDEV=y
++CONFIG_INPUT_EVDEV=y
++CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYBOARD_GPIO_POLLED=y
++CONFIG_KEYBOARD_OMAP4=y
++CONFIG_KEYBOARD_TWL4030=y
++# CONFIG_INPUT_MOUSE is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++CONFIG_TOUCHSCREEN_TI_AM335X_TSC=y
++CONFIG_TOUCHSCREEN_PIXCIR=y
++CONFIG_TOUCHSCREEN_TSC2005=y
++CONFIG_TOUCHSCREEN_TSC2007=y
++CONFIG_INPUT_MISC=y
++CONFIG_INPUT_TPS65218_PWRBUTTON=y
++CONFIG_INPUT_TWL4030_PWRBUTTON=y
++CONFIG_INPUT_PALMAS_PWRBUTTON=y
++CONFIG_INPUT_GPIO_ROTARY_ENCODER=y
++CONFIG_VT_HW_CONSOLE_BINDING=y
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++# CONFIG_SERIAL_8250_DMA is not set
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=10
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++CONFIG_SERIAL_8250_OMAP=y
++CONFIG_SERIAL_OF_PLATFORM=y
++CONFIG_HW_RANDOM=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_SPI=y
++CONFIG_SPI_DEBUG=y
++CONFIG_SPI_CADENCE=y
++CONFIG_SPI_GPIO=y
++CONFIG_SPI_OMAP24XX=y
++CONFIG_SPI_SPIDEV=y
++CONFIG_PINCTRL_SINGLE=y
++CONFIG_PINCTRL_TI_IODELAY=y
++CONFIG_DEBUG_GPIO=y
++CONFIG_GPIO_SYSFS=y
++CONFIG_GPIO_PCF857X=y
++CONFIG_GPIO_PALMAS=y
++CONFIG_GPIO_TWL4030=y
++CONFIG_W1=y
++CONFIG_W1_MASTER_GPIO=y
++CONFIG_HDQ_MASTER_OMAP=y
++CONFIG_W1_SLAVE_THERM=y
++CONFIG_POWER_SUPPLY=y
++CONFIG_BATTERY_BQ27x00=m
++CONFIG_CHARGER_ISP1704=m
++CONFIG_CHARGER_TWL4030=m
++CONFIG_CHARGER_BQ2415X=m
++CONFIG_CHARGER_BQ24190=m
++CONFIG_CHARGER_BQ24735=m
++CONFIG_POWER_RESET=y
++CONFIG_POWER_AVS=y
++CONFIG_VOLTAGE_DOMAIN_OMAP=y
++CONFIG_SENSORS_GPIO_FAN=y
++CONFIG_SENSORS_LM75=m
++CONFIG_SENSORS_TMP102=y
++CONFIG_THERMAL=y
++CONFIG_THERMAL_GOV_FAIR_SHARE=y
++CONFIG_THERMAL_GOV_USER_SPACE=y
++CONFIG_CPU_THERMAL=y
++CONFIG_TI_SOC_THERMAL=y
++CONFIG_TI_THERMAL=y
++CONFIG_WATCHDOG=y
++CONFIG_OMAP_WATCHDOG=y
++CONFIG_TWL4030_WATCHDOG=y
++CONFIG_MFD_TI_AM335X_TSCADC=y
++CONFIG_MFD_PALMAS=y
++CONFIG_MFD_TPS65217=y
++CONFIG_MFD_TPS65218=y
++CONFIG_MFD_TPS65910=y
++CONFIG_TWL4030_CORE=y
++CONFIG_TWL4030_POWER=y
++CONFIG_TWL6040_CORE=y
++CONFIG_REGULATOR_FIXED_VOLTAGE=y
++CONFIG_REGULATOR_PALMAS=y
++CONFIG_REGULATOR_PBIAS=y
++CONFIG_REGULATOR_TI_ABB=y
++CONFIG_REGULATOR_TPS62360=m
++CONFIG_REGULATOR_TPS65023=y
++CONFIG_REGULATOR_TPS6507X=y
++CONFIG_REGULATOR_TPS65217=y
++CONFIG_REGULATOR_TPS65218=y
++CONFIG_REGULATOR_TPS65910=y
++CONFIG_REGULATOR_TWL4030=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
++CONFIG_MEDIA_USB_SUPPORT=y
++CONFIG_USB_VIDEO_CLASS=m
++CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_V4L_MEM2MEM_DRIVERS=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_OV2659=m
++CONFIG_VIDEO_OV1063X=m
++CONFIG_VIDEO_MT9T11X=m
++CONFIG_DRM=y
++CONFIG_DRM_I2C_NXP_TDA998X=y
++CONFIG_DRM_OMAP=y
++CONFIG_DRM_OMAP_NUM_CRTCS=2
++CONFIG_DRM_OMAP_WB_M2M=y
++CONFIG_DRM_TILCDC=y
++CONFIG_FIRMWARE_EDID=y
++CONFIG_FB_TILEBLITTING=y
++CONFIG_FB_DA8XX=y
++CONFIG_OMAP2_DSS=y
++CONFIG_OMAP5_DSS_HDMI=y
++CONFIG_OMAP2_DSS_SDI=y
++CONFIG_OMAP2_DSS_DSI=y
++CONFIG_DISPLAY_ENCODER_TFP410=m
++CONFIG_DISPLAY_ENCODER_TPD12S015=y
++CONFIG_DISPLAY_DRA7EVM_ENCODER_TPD12S015=y
++CONFIG_DISPLAY_ENCODER_SII9022=y
++CONFIG_DISPLAY_ENCODER_TC358768=y
++CONFIG_DISPLAY_CONNECTOR_DVI=m
++CONFIG_DISPLAY_CONNECTOR_HDMI=y
++CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=m
++CONFIG_DISPLAY_PANEL_DPI=y
++CONFIG_DISPLAY_PANEL_DSI_CM=m
++CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=m
++CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=m
++CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=m
++CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=m
++CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=m
++CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=m
++CONFIG_DISPLAY_PANEL_TLC59108=y
++CONFIG_LCD_CLASS_DEVICE=y
++CONFIG_LCD_PLATFORM=y
++# CONFIG_BACKLIGHT_GENERIC is not set
++CONFIG_BACKLIGHT_PWM=y
++CONFIG_BACKLIGHT_GPIO=y
++CONFIG_BACKLIGHT_LED=y
++CONFIG_SOUND=y
++CONFIG_SND=y
++CONFIG_SND_MIXER_OSS=m
++CONFIG_SND_PCM_OSS=m
++CONFIG_SND_VERBOSE_PRINTK=y
++CONFIG_SND_DEBUG=y
++CONFIG_SND_USB_AUDIO=m
++CONFIG_SND_SOC=y
++CONFIG_SND_EDMA_SOC=y
++CONFIG_SND_DAVINCI_SOC_MCASP=y
++CONFIG_SND_AM33XX_SOC_EVM=m
++CONFIG_SND_OMAP_SOC=y
++CONFIG_SND_OMAP_SOC_HDMI_AUDIO=m
++CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
++CONFIG_SND_SOC_HDMI_CODEC=m
++CONFIG_SND_SOC_TLV320AIC31XX=m
++CONFIG_SND_SIMPLE_CARD=m
++CONFIG_HID_GENERIC=m
++CONFIG_USB_HIDDEV=y
++CONFIG_USB_KBD=m
++CONFIG_USB_MOUSE=m
++CONFIG_USB=m
++CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
++CONFIG_USB_OTG=y
++CONFIG_USB_MON=m
++CONFIG_USB_XHCI_HCD=m
++CONFIG_USB_EHCI_HCD=m
++CONFIG_USB_OHCI_HCD=m
++CONFIG_USB_WDM=m
++CONFIG_USB_STORAGE=m
++CONFIG_USB_MUSB_HDRC=m
++CONFIG_USB_MUSB_OMAP2PLUS=m
++CONFIG_USB_MUSB_AM35X=m
++CONFIG_USB_MUSB_DSPS=m
++CONFIG_USB_TI_CPPI41_DMA=y
++CONFIG_USB_DWC3=m
++CONFIG_USB_TEST=m
++CONFIG_AM335X_PHY_USB=y
++CONFIG_USB_GADGET=m
++CONFIG_USB_GADGET_DEBUG=y
++CONFIG_USB_GADGET_DEBUG_FILES=y
++CONFIG_USB_GADGET_DEBUG_FS=y
++CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=32
++CONFIG_USB_CONFIGFS=m
++CONFIG_USB_CONFIGFS_SERIAL=y
++CONFIG_USB_CONFIGFS_ACM=y
++CONFIG_USB_CONFIGFS_OBEX=y
++CONFIG_USB_CONFIGFS_NCM=y
++CONFIG_USB_CONFIGFS_ECM=y
++CONFIG_USB_CONFIGFS_ECM_SUBSET=y
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_EEM=y
++CONFIG_USB_CONFIGFS_PHONET=y
++CONFIG_USB_CONFIGFS_MASS_STORAGE=y
++CONFIG_USB_CONFIGFS_F_LB_SS=y
++CONFIG_USB_CONFIGFS_F_FS=y
++CONFIG_USB_CONFIGFS_F_UAC1=y
++CONFIG_USB_CONFIGFS_F_UAC2=y
++CONFIG_USB_CONFIGFS_F_MIDI=y
++CONFIG_USB_CONFIGFS_F_HID=y
++CONFIG_USB_ZERO=m
++CONFIG_USB_AUDIO=m
++CONFIG_USB_ETH=m
++CONFIG_USB_G_NCM=m
++CONFIG_USB_GADGETFS=m
++CONFIG_USB_FUNCTIONFS=m
++CONFIG_USB_FUNCTIONFS_ETH=y
++CONFIG_USB_FUNCTIONFS_RNDIS=y
++CONFIG_USB_FUNCTIONFS_GENERIC=y
++CONFIG_USB_MASS_STORAGE=m
++CONFIG_USB_G_SERIAL=m
++CONFIG_USB_MIDI_GADGET=m
++CONFIG_USB_G_PRINTER=m
++CONFIG_USB_CDC_COMPOSITE=m
++CONFIG_USB_G_NOKIA=m
++CONFIG_USB_G_ACM_MS=m
++CONFIG_USB_G_MULTI=m
++CONFIG_USB_G_MULTI_CDC=y
++CONFIG_USB_G_HID=m
++CONFIG_USB_G_DBGP=m
++CONFIG_USB_G_WEBCAM=m
++CONFIG_MMC=y
++CONFIG_SDIO_UART=y
++CONFIG_MMC_OMAP=y
++CONFIG_MMC_OMAP_HS=y
++CONFIG_NEW_LEDS=y
++CONFIG_LEDS_CLASS=y
++CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_PCA955X=y
++CONFIG_LEDS_PCA963X=y
++CONFIG_LEDS_PWM=y
++CONFIG_LEDS_TLC591XX=y
++CONFIG_LEDS_TRIGGER_TIMER=y
++CONFIG_LEDS_TRIGGER_ONESHOT=y
++CONFIG_LEDS_TRIGGER_HEARTBEAT=y
++CONFIG_LEDS_TRIGGER_BACKLIGHT=y
++CONFIG_LEDS_TRIGGER_CPU=y
++CONFIG_LEDS_TRIGGER_GPIO=y
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc1"
++CONFIG_RTC_DRV_DS1307=y
++CONFIG_RTC_DRV_PALMAS=y
++CONFIG_RTC_DRV_TWL4030=y
++CONFIG_RTC_DRV_TPS65910=y
++CONFIG_RTC_DRV_OMAP=y
++CONFIG_DMADEVICES=y
++CONFIG_TI_EDMA=y
++CONFIG_DMA_OMAP=y
++CONFIG_UIO=m
++CONFIG_COMMON_CLK_PALMAS=y
++CONFIG_HWSPINLOCK_OMAP=y
++CONFIG_OMAP2PLUS_MBOX=y
++CONFIG_OMAP_IOMMU=y
++CONFIG_OMAP_IOMMU_DEBUG=y
++CONFIG_WKUP_M3_RPROC=y
++CONFIG_PRUSS_REMOTEPROC=m
++CONFIG_RPMSG_PRU=m
++CONFIG_SOC_TI=y
++CONFIG_WKUP_M3_IPC=y
++CONFIG_EXTCON=m
++CONFIG_EXTCON_PALMAS=m
++CONFIG_EXTCON_USB_GPIO=m
++CONFIG_TI_EMIF=m
++CONFIG_TI_EMIF_SRAM=y
++CONFIG_IIO=y
++CONFIG_IIO_BUFFER_CB=y
++CONFIG_IIO_TRIGGER=y
++CONFIG_TI_AM335X_ADC=y
++CONFIG_PWM=y
++CONFIG_PWM_PCA9685=y
++CONFIG_PWM_TIECAP=y
++CONFIG_PWM_TIEHRPWM=y
++CONFIG_PWM_TWL=m
++CONFIG_PWM_TWL_LED=m
++CONFIG_OMAP_USB2=m
++CONFIG_TI_PIPE3=y
++CONFIG_TWL4030_USB=m
++CONFIG_EXT2_FS=y
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++CONFIG_EXT4_FS=y
++CONFIG_FANOTIFY=y
++CONFIG_QUOTA=y
++CONFIG_QFMT_V2=y
++CONFIG_AUTOFS4_FS=m
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_TMPFS=y
++CONFIG_TMPFS_POSIX_ACL=y
++CONFIG_CONFIGFS_FS=y
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_SUMMARY=y
++CONFIG_JFFS2_FS_XATTR=y
++CONFIG_JFFS2_COMPRESSION_OPTIONS=y
++CONFIG_JFFS2_LZO=y
++CONFIG_JFFS2_RUBIN=y
++CONFIG_UBIFS_FS=y
++CONFIG_CRAMFS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3_ACL=y
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++CONFIG_NFSD=y
++CONFIG_NFSD_V3=y
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_ISO8859_1=y
++CONFIG_PRINTK_TIME=y
++CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_FS=y
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_SCHED_DEBUG is not set
++# CONFIG_DEBUG_PREEMPT is not set
++# CONFIG_DEBUG_BUGVERBOSE is not set
++# CONFIG_FTRACE is not set
++CONFIG_SAMPLES=y
++CONFIG_SAMPLE_RPMSG_CLIENT=m
++# CONFIG_ARM_UNWIND is not set
++CONFIG_SECURITY=y
++CONFIG_CRYPTO_MICHAEL_MIC=y
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_CRYPTO_USER_API_HASH=y
++CONFIG_CRYPTO_USER_API_SKCIPHER=y
++CONFIG_CRYPTO_DEV_OMAP_SHAM=y
++CONFIG_CRYPTO_DEV_OMAP_AES=y
++CONFIG_CRYPTO_DEV_OMAP_DES=y
++CONFIG_CRC_CCITT=y
++CONFIG_CRC_T10DIF=y
++CONFIG_CRC_ITU_T=y
++CONFIG_CRC7=y
++CONFIG_LIBCRC32C=y
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+old mode 100644
+new mode 100755
+index b7d9fc6..734d90a
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -273,7 +273,7 @@ static struct omap_hwmod am33xx_lcdc_hwmod = {
+ 	.name		= "lcdc",
+ 	.class		= &am33xx_lcdc_hwmod_class,
+ 	.clkdm_name	= "lcdc_clkdm",
+-	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_NO_IDLE | HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+ 	.main_clk	= "lcd_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+old mode 100644
+new mode 100755
+index 7d1cfc1..8fe092a
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -26,6 +26,9 @@
+ #include <linux/err.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/of_irq.h>
++#include <linux/of_gpio.h>
++#include <linux/interrupt.h>
+ 
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/tps65217.h>
+@@ -157,6 +160,82 @@ static const struct of_device_id tps65217_of_match[] = {
+ 	{ /* sentinel */ },
+ };
+ 
++static irqreturn_t tps65217_irq(int irq, void *irq_data)
++{
++        struct tps65217 *tps = irq_data;
++        unsigned int int_reg = 0, status_reg = 0;
++
++        tps65217_reg_read(tps, TPS65217_REG_INT, &int_reg);
++        tps65217_reg_read(tps, TPS65217_REG_STATUS, &status_reg);
++        if (status_reg)
++                dev_dbg(tps->dev, "status now: 0x%X\n", status_reg);
++
++        if (!int_reg)
++                return IRQ_NONE;
++
++        if (int_reg & TPS65217_INT_PBI) {
++                /* Handle push button */
++                dev_dbg(tps->dev, "power button status change\n");
++                input_report_key(tps->pwr_but, KEY_POWER,
++                                status_reg & TPS65217_STATUS_PB);
++                input_sync(tps->pwr_but);
++        }
++        if (int_reg & TPS65217_INT_ACI) {
++                /* Handle AC power status change */
++                dev_dbg(tps->dev, "AC power status change\n");
++                /* Press KEY_POWER when AC not present */
++                input_report_key(tps->pwr_but, KEY_POWER,
++                                ~status_reg & TPS65217_STATUS_ACPWR);
++                input_sync(tps->pwr_but);
++        }
++        if (int_reg & TPS65217_INT_USBI) {
++                /* Handle USB power status change */
++                dev_dbg(tps->dev, "USB power status change\n");
++        }
++
++        return IRQ_HANDLED;
++}
++
++static int tps65217_probe_pwr_but(struct tps65217 *tps)
++{
++	int ret;
++        unsigned int int_reg;
++
++	tps->pwr_but = devm_input_allocate_device(tps->dev);
++	if (!tps->pwr_but) {
++		dev_err(tps->dev,
++			"Failed to allocated pwr_but input device\n");
++		return -ENOMEM;
++	}
++
++	tps->pwr_but->evbit[0] = BIT_MASK(EV_KEY);
++	tps->pwr_but->keybit[BIT_WORD(KEY_POWER)] = BIT_MASK(KEY_POWER);
++	tps->pwr_but->name = "tps65217_pwr_but";
++	ret = input_register_device(tps->pwr_but);
++	if (ret) {
++		/* NOTE: devm managed device */
++		dev_err(tps->dev, "Failed to register button device\n");
++		return ret;
++	}
++	ret = devm_request_threaded_irq(tps->dev,
++		tps->irq, NULL, tps65217_irq, IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++		"tps65217", tps);
++	if (ret != 0) {
++		dev_err(tps->dev, "Failed to request IRQ %d\n", tps->irq);
++		return ret;
++	}
++
++	/* enable the power button interrupt */
++	ret = tps65217_reg_read(tps, TPS65217_REG_INT, &int_reg);
++	if (ret < 0) {
++		dev_err(tps->dev, "Failed to read INT reg\n");
++		return ret;
++	}
++	int_reg &= ~TPS65217_INT_PBM;
++	tps65217_reg_write(tps, TPS65217_REG_INT, int_reg, TPS65217_PROTECT_NONE);
++	return 0;
++}
++
+ static int tps65217_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *ids)
+ {
+@@ -164,10 +243,13 @@ static int tps65217_probe(struct i2c_client *client,
+ 	unsigned int version;
+ 	unsigned long chip_id = ids->driver_data;
+ 	const struct of_device_id *match;
++	struct device_node *node;
+ 	bool status_off = false;
++	int irq = -1, irq_gpio = -1;
+ 	int ret;
+ 
+-	if (client->dev.of_node) {
++	node = client->dev.of_node;
++	if (node) {
+ 		match = of_match_device(tps65217_of_match, &client->dev);
+ 		if (!match) {
+ 			dev_err(&client->dev,
+@@ -175,8 +257,31 @@ static int tps65217_probe(struct i2c_client *client,
+ 			return -EINVAL;
+ 		}
+ 		chip_id = (unsigned long)match->data;
+-		status_off = of_property_read_bool(client->dev.of_node,
++		status_off = of_property_read_bool(node,
+ 					"ti,pmic-shutdown-controller");
++
++		/* at first try to get irq via OF method */
++		irq = irq_of_parse_and_map(node, 0);
++		if (irq <= 0) {
++			irq = -1;
++			irq_gpio = of_get_named_gpio(node, "irq-gpio", 0);
++			if (irq_gpio >= 0) {
++				/* valid gpio; convert to irq */
++				ret = devm_gpio_request_one(&client->dev,
++					irq_gpio, GPIOF_DIR_IN,
++					"tps65217-gpio-irq");
++				if (ret != 0)
++					dev_warn(&client->dev, "Failed to "
++						"request gpio #%d\n", irq_gpio);
++				irq = gpio_to_irq(irq_gpio);
++				if (irq <= 0) {
++					dev_warn(&client->dev, "Failed to "
++						"convert gpio #%d to irq\n",
++						irq_gpio);
++					irq = -1;
++				}
++			}
++		}
+ 	}
+ 
+ 	if (!chip_id) {
+@@ -200,6 +305,18 @@ static int tps65217_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	tps->irq = irq;
++	tps->irq_gpio = irq_gpio;
++
++	/* we got an irq, request it */
++	if (tps->irq >= 0) {
++		ret = tps65217_probe_pwr_but(tps);
++		if (ret < 0) {
++			dev_err(tps->dev, "Failed to probe pwr_but\n");
++			return ret;
++		}
++	}
++
+ 	ret = mfd_add_devices(tps->dev, -1, tps65217s,
+ 			      ARRAY_SIZE(tps65217s), NULL, 0, NULL);
+ 	if (ret < 0) {
+diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
+old mode 100644
+new mode 100755
+index 34b5c27..acf8e8f
+--- a/drivers/pwm/pwm-pca9685.c
++++ b/drivers/pwm/pwm-pca9685.c
+@@ -2,6 +2,7 @@
+  * Driver for PCA9685 16-channel 12-bit PWM LED controller
+  *
+  * Copyright (C) 2013 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ * Copyright (C) 2015 Clemens Gruber <clemens.gruber@pqgruber.com>
+  *
+  * based on the pwm-twl-led.c driver
+  *
+@@ -24,6 +25,15 @@
+ #include <linux/pwm.h>
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
++#include <linux/delay.h>
++
++/*
++ * Because the PCA9685 has only one prescaler per chip, changing the period of
++ * one channel affects the period of all 16 PWM outputs!
++ * However, the ratio between each configured duty cycle and the chip-wide
++ * period remains constant, because the OFF time is set in proportion to the
++ * counter range.
++ */
+ 
+ #define PCA9685_MODE1		0x00
+ #define PCA9685_MODE2		0x01
+@@ -42,10 +52,18 @@
+ #define PCA9685_ALL_LED_OFF_H	0xFD
+ #define PCA9685_PRESCALE	0xFE
+ 
++#define PCA9685_PRESCALE_MIN	0x03	/* => max. frequency of 1526 Hz */
++#define PCA9685_PRESCALE_MAX	0xFF	/* => min. frequency of 24 Hz */
++
++#define PCA9685_COUNTER_RANGE	4096
++#define PCA9685_DEFAULT_PERIOD	5000000	/* Default period_ns = 1/200 Hz */
++#define PCA9685_OSC_CLOCK_MHZ	25	/* Internal oscillator with 25 MHz */
++
+ #define PCA9685_NUMREGS		0xFF
+ #define PCA9685_MAXCHAN		0x10
+ 
+ #define LED_FULL		(1 << 4)
++#define MODE1_RESTART		(1 << 7)
+ #define MODE1_SLEEP		(1 << 4)
+ #define MODE2_INVRT		(1 << 4)
+ #define MODE2_OUTDRV		(1 << 2)
+@@ -59,6 +77,8 @@ struct pca9685 {
+ 	struct pwm_chip chip;
+ 	struct regmap *regmap;
+ 	int active_cnt;
++	int duty_ns;
++	int period_ns;
+ };
+ 
+ static inline struct pca9685 *to_pca(struct pwm_chip *chip)
+@@ -72,6 +92,47 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+ 	struct pca9685 *pca = to_pca(chip);
+ 	unsigned long long duty;
+ 	unsigned int reg;
++	int prescale;
++
++	if (period_ns != pca->period_ns) {
++		prescale = DIV_ROUND_CLOSEST(PCA9685_OSC_CLOCK_MHZ * period_ns,
++					     PCA9685_COUNTER_RANGE * 1000) - 1;
++
++		if (prescale >= PCA9685_PRESCALE_MIN &&
++			prescale <= PCA9685_PRESCALE_MAX) {
++			/* Put chip into sleep mode */
++			regmap_update_bits(pca->regmap, PCA9685_MODE1,
++					   MODE1_SLEEP, MODE1_SLEEP);
++
++			/* Change the chip-wide output frequency */
++			regmap_write(pca->regmap, PCA9685_PRESCALE, prescale);
++
++			/* Wake the chip up */
++			regmap_update_bits(pca->regmap, PCA9685_MODE1,
++					   MODE1_SLEEP, 0x0);
++
++			/* Wait 500us for the oscillator to be back up */
++			udelay(500);
++
++			pca->period_ns = period_ns;
++
++			/*
++			 * If the duty cycle did not change, restart PWM with
++			 * the same duty cycle to period ratio and return.
++			 */
++			if (duty_ns == pca->duty_ns) {
++				regmap_update_bits(pca->regmap, PCA9685_MODE1,
++						   MODE1_RESTART, 0x1);
++				return 0;
++			}
++		} else {
++			dev_err(chip->dev,
++				"prescaler not set: period out of bounds!\n");
++			return -EINVAL;
++		}
++	}
++
++	pca->duty_ns = duty_ns;
+ 
+ 	if (duty_ns < 1) {
+ 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+@@ -81,10 +142,34 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+ 
+ 		regmap_write(pca->regmap, reg, LED_FULL);
+ 
++		/* Clear the full ON bit */
++		if (pwm->hwpwm >= PCA9685_MAXCHAN)
++			reg = PCA9685_ALL_LED_ON_H;
++		else
++			reg = LED_N_ON_H(pwm->hwpwm);
++
++		regmap_write(pca->regmap, reg, 0);
++
+ 		return 0;
+ 	}
+ 
+ 	if (duty_ns == period_ns) {
++		/* Clear both OFF registers */
++		if (pwm->hwpwm >= PCA9685_MAXCHAN)
++			reg = PCA9685_ALL_LED_OFF_L;
++		else
++			reg = LED_N_OFF_L(pwm->hwpwm);
++
++		regmap_write(pca->regmap, reg, 0x0);
++
++		if (pwm->hwpwm >= PCA9685_MAXCHAN)
++			reg = PCA9685_ALL_LED_OFF_H;
++		else
++			reg = LED_N_OFF_H(pwm->hwpwm);
++
++		regmap_write(pca->regmap, reg, 0x0);
++
++		/* Set the full ON bit */
+ 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+ 			reg = PCA9685_ALL_LED_ON_H;
+ 		else
+@@ -95,7 +180,7 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+ 		return 0;
+ 	}
+ 
+-	duty = 4096 * (unsigned long long)duty_ns;
++	duty = PCA9685_COUNTER_RANGE * (unsigned long long)duty_ns;
+ 	duty = DIV_ROUND_UP_ULL(duty, period_ns);
+ 
+ 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+@@ -112,6 +197,14 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+ 
+ 	regmap_write(pca->regmap, reg, ((int)duty >> 8) & 0xf);
+ 
++	/* Clear the full ON bit, otherwise the set OFF time has no effect */
++	if (pwm->hwpwm >= PCA9685_MAXCHAN)
++		reg = PCA9685_ALL_LED_ON_H;
++	else
++		reg = LED_N_ON_H(pwm->hwpwm);
++
++	regmap_write(pca->regmap, reg, 0);
++
+ 	return 0;
+ }
+ 
+@@ -119,6 +212,7 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ {
+ 	struct pca9685 *pca = to_pca(chip);
+ 	unsigned int reg;
++	unsigned int ret;
+ 
+ 	/*
+ 	 * The PWM subsystem does not support a pre-delay.
+@@ -136,7 +230,9 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ 	else
+ 		reg = LED_N_ON_H(pwm->hwpwm);
+ 
+-	regmap_write(pca->regmap, reg, 0);
++	regmap_read(pca->regmap, reg, &ret);
++	if(!(ret & LED_FULL))
++		regmap_write(pca->regmap, reg, 0);
+ 
+ 	/*
+ 	 * Clear the full-off bit.
+@@ -228,6 +324,8 @@ static int pca9685_pwm_probe(struct i2c_client *client,
+ 			ret);
+ 		return ret;
+ 	}
++	pca->duty_ns = 0;
++	pca->period_ns = PCA9685_DEFAULT_PERIOD;
+ 
+ 	i2c_set_clientdata(client, pca);
+ 
+@@ -285,7 +383,6 @@ MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
+ static struct i2c_driver pca9685_i2c_driver = {
+ 	.driver = {
+ 		.name = "pca9685-pwm",
+-		.owner = THIS_MODULE,
+ 		.of_match_table = pca9685_dt_ids,
+ 	},
+ 	.probe = pca9685_pwm_probe,
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+old mode 100644
+new mode 100755
+index 58f97b6..fd84e00
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -35,6 +35,7 @@
+ #include <linux/gcd.h>
+ 
+ #include <linux/spi/spi.h>
++#include <linux/gpio.h>
+ 
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+@@ -242,17 +243,27 @@ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
+ 	mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCTRL0);
+ }
+ 
+-static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
++static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
+ {
+ 	u32 l;
+ 
+-	l = mcspi_cached_chconf0(spi);
+-	if (cs_active)
+-		l |= OMAP2_MCSPI_CHCONF_FORCE;
+-	else
+-		l &= ~OMAP2_MCSPI_CHCONF_FORCE;
++	/* The controller handles the inverted chip selects
++	 * using the OMAP2_MCSPI_CHCONF_EPOL bit so revert
++	 * the inversion from the core spi_set_cs function.
++	 */
++	if (spi->mode & SPI_CS_HIGH)
++		enable = !enable;
+ 
+-	mcspi_write_chconf0(spi, l);
++	if (spi->controller_state) {
++		l = mcspi_cached_chconf0(spi);
++
++		if (enable)
++			l &= ~OMAP2_MCSPI_CHCONF_FORCE;
++		else
++			l |= OMAP2_MCSPI_CHCONF_FORCE;
++
++		mcspi_write_chconf0(spi, l);
++	}
+ }
+ 
+ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+@@ -1009,6 +1020,16 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 		spi->controller_state = cs;
+ 		/* Link this to context save list */
+ 		list_add_tail(&cs->node, &ctx->cs);
++
++		if (gpio_is_valid(spi->cs_gpio)) {
++			ret = gpio_request(spi->cs_gpio, dev_name(&spi->dev));
++			if (ret) {
++				dev_err(&spi->dev, "failed to request gpio\n");
++				return ret;
++			}
++			gpio_direction_output(spi->cs_gpio,
++					 !(spi->mode & SPI_CS_HIGH));
++		}
+ 	}
+ 
+ 	if (!mcspi_dma->dma_rx || !mcspi_dma->dma_tx) {
+@@ -1056,9 +1077,13 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
+ 			mcspi_dma->dma_tx = NULL;
+ 		}
+ 	}
++
++	if (gpio_is_valid(spi->cs_gpio))
++		gpio_free(spi->cs_gpio);
+ }
+ 
+-static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
++static int omap2_mcspi_work_one(struct omap2_mcspi *mcspi,
++		struct spi_device *spi, struct spi_transfer *t)
+ {
+ 
+ 	/* We only enable one channel at a time -- the one whose message is
+@@ -1068,18 +1093,14 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
+ 	 * chipselect with the FORCE bit ... CS != channel enable.
+ 	 */
+ 
+-	struct spi_device		*spi;
+-	struct spi_transfer		*t = NULL;
+ 	struct spi_master		*master;
+ 	struct omap2_mcspi_dma		*mcspi_dma;
+-	int				cs_active = 0;
+ 	struct omap2_mcspi_cs		*cs;
+ 	struct omap2_mcspi_device_config *cd;
+ 	int				par_override = 0;
+ 	int				status = 0;
+ 	u32				chconf;
+ 
+-	spi = m->spi;
+ 	master = spi->master;
+ 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
+ 	cs = spi->controller_state;
+@@ -1096,103 +1117,84 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
+ 		par_override = 1;
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+-	list_for_each_entry(t, &m->transfers, transfer_list) {
+-		if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
+-			status = -EINVAL;
+-			break;
+-		}
+-		if (par_override ||
+-		    (t->speed_hz != spi->max_speed_hz) ||
+-		    (t->bits_per_word != spi->bits_per_word)) {
+-			par_override = 1;
+-			status = omap2_mcspi_setup_transfer(spi, t);
+-			if (status < 0)
+-				break;
+-			if (t->speed_hz == spi->max_speed_hz &&
+-			    t->bits_per_word == spi->bits_per_word)
+-				par_override = 0;
+-		}
+-		if (cd && cd->cs_per_word) {
+-			chconf = mcspi->ctx.modulctrl;
+-			chconf &= ~OMAP2_MCSPI_MODULCTRL_SINGLE;
+-			mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, chconf);
+-			mcspi->ctx.modulctrl =
+-				mcspi_read_cs_reg(spi, OMAP2_MCSPI_MODULCTRL);
+-		}
+-
+ 
+-		if (!cs_active) {
+-			omap2_mcspi_force_cs(spi, 1);
+-			cs_active = 1;
+-		}
++	if (gpio_is_valid(spi->cs_gpio))
++		omap2_mcspi_set_cs(spi, spi->mode & SPI_CS_HIGH);
+ 
+-		chconf = mcspi_cached_chconf0(spi);
+-		chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+-		chconf &= ~OMAP2_MCSPI_CHCONF_TURBO;
++	if (par_override ||
++	    (t->speed_hz != spi->max_speed_hz) ||
++	    (t->bits_per_word != spi->bits_per_word)) {
++		par_override = 1;
++		status = omap2_mcspi_setup_transfer(spi, t);
++		if (status < 0)
++			goto out;
++		if (t->speed_hz == spi->max_speed_hz &&
++		    t->bits_per_word == spi->bits_per_word)
++			par_override = 0;
++	}
++	if (cd && cd->cs_per_word) {
++		chconf = mcspi->ctx.modulctrl;
++		chconf &= ~OMAP2_MCSPI_MODULCTRL_SINGLE;
++		mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, chconf);
++		mcspi->ctx.modulctrl =
++			mcspi_read_cs_reg(spi, OMAP2_MCSPI_MODULCTRL);
++	}
+ 
+-		if (t->tx_buf == NULL)
+-			chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
+-		else if (t->rx_buf == NULL)
+-			chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
+-
+-		if (cd && cd->turbo_mode && t->tx_buf == NULL) {
+-			/* Turbo mode is for more than one word */
+-			if (t->len > ((cs->word_len + 7) >> 3))
+-				chconf |= OMAP2_MCSPI_CHCONF_TURBO;
+-		}
++	chconf = mcspi_cached_chconf0(spi);
++	chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
++	chconf &= ~OMAP2_MCSPI_CHCONF_TURBO;
++
++	if (t->tx_buf == NULL)
++		chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
++	else if (t->rx_buf == NULL)
++		chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
++
++	if (cd && cd->turbo_mode && t->tx_buf == NULL) {
++		/* Turbo mode is for more than one word */
++		if (t->len > ((cs->word_len + 7) >> 3))
++			chconf |= OMAP2_MCSPI_CHCONF_TURBO;
++	}
+ 
+-		mcspi_write_chconf0(spi, chconf);
++	mcspi_write_chconf0(spi, chconf);
+ 
+-		if (t->len) {
+-			unsigned	count;
++	if (t->len) {
++		unsigned	count;
+ 
+-			if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
+-			    (m->is_dma_mapped || t->len >= DMA_MIN_BYTES))
+-				omap2_mcspi_set_fifo(spi, t, 1);
++		if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
++		    (t->len >= DMA_MIN_BYTES))
++			omap2_mcspi_set_fifo(spi, t, 1);
+ 
+-			omap2_mcspi_set_enable(spi, 1);
++		omap2_mcspi_set_enable(spi, 1);
+ 
+-			/* RX_ONLY mode needs dummy data in TX reg */
+-			if (t->tx_buf == NULL)
+-				writel_relaxed(0, cs->base
+-						+ OMAP2_MCSPI_TX0);
++		/* RX_ONLY mode needs dummy data in TX reg */
++		if (t->tx_buf == NULL)
++			writel_relaxed(0, cs->base
++					+ OMAP2_MCSPI_TX0);
+ 
+-			if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
+-			    (m->is_dma_mapped || t->len >= DMA_MIN_BYTES))
+-				count = omap2_mcspi_txrx_dma(spi, t);
+-			else
+-				count = omap2_mcspi_txrx_pio(spi, t);
+-			m->actual_length += count;
++		if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
++		    (t->len >= DMA_MIN_BYTES))
++			count = omap2_mcspi_txrx_dma(spi, t);
++		else
++			count = omap2_mcspi_txrx_pio(spi, t);
+ 
+-			if (count != t->len) {
+-				status = -EIO;
+-				break;
+-			}
++		if (count != t->len) {
++			status = -EIO;
++			goto out;
+ 		}
++	}
+ 
+-		if (t->delay_usecs)
+-			udelay(t->delay_usecs);
+-
+-		/* ignore the "leave it on after last xfer" hint */
+-		if (t->cs_change) {
+-			omap2_mcspi_force_cs(spi, 0);
+-			cs_active = 0;
+-		}
++	omap2_mcspi_set_enable(spi, 0);
+ 
+-		omap2_mcspi_set_enable(spi, 0);
++	if (mcspi->fifo_depth > 0)
++		omap2_mcspi_set_fifo(spi, t, 0);
+ 
+-		if (mcspi->fifo_depth > 0)
+-			omap2_mcspi_set_fifo(spi, t, 0);
+-	}
++out:
+ 	/* Restore defaults if they were overriden */
+ 	if (par_override) {
+ 		par_override = 0;
+ 		status = omap2_mcspi_setup_transfer(spi, NULL);
+ 	}
+ 
+-	if (cs_active)
+-		omap2_mcspi_force_cs(spi, 0);
+-
+ 	if (cd && cd->cs_per_word) {
+ 		chconf = mcspi->ctx.modulctrl;
+ 		chconf |= OMAP2_MCSPI_MODULCTRL_SINGLE;
+@@ -1203,78 +1205,63 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+ 
++	if (gpio_is_valid(spi->cs_gpio))
++		omap2_mcspi_set_cs(spi, !(spi->mode & SPI_CS_HIGH));
++
+ 	if (mcspi->fifo_depth > 0 && t)
+ 		omap2_mcspi_set_fifo(spi, t, 0);
+ 
+-	m->status = status;
++	return status;
+ }
+ 
+-static int omap2_mcspi_transfer_one_message(struct spi_master *master,
+-		struct spi_message *m)
++static int omap2_mcspi_transfer_one(struct spi_master *master,
++		struct spi_device *spi, struct spi_transfer *t)
+ {
+-	struct spi_device	*spi;
+ 	struct omap2_mcspi	*mcspi;
+ 	struct omap2_mcspi_dma	*mcspi_dma;
+-	struct spi_transfer	*t;
+-	int status;
++	const void	*tx_buf = t->tx_buf;
++	void		*rx_buf = t->rx_buf;
++	unsigned	len = t->len;
+ 
+-	spi = m->spi;
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
+-	m->actual_length = 0;
+-	m->status = 0;
+-
+-	list_for_each_entry(t, &m->transfers, transfer_list) {
+-		const void	*tx_buf = t->tx_buf;
+-		void		*rx_buf = t->rx_buf;
+-		unsigned	len = t->len;
+-
+-		if ((len && !(rx_buf || tx_buf))) {
+-			dev_dbg(mcspi->dev, "transfer: %d Hz, %d %s%s, %d bpw\n",
+-					t->speed_hz,
+-					len,
+-					tx_buf ? "tx" : "",
+-					rx_buf ? "rx" : "",
+-					t->bits_per_word);
+-			status = -EINVAL;
+-			goto out;
+-		}
++	if ((len && !(rx_buf || tx_buf))) {
++		dev_dbg(mcspi->dev, "transfer: %d Hz, %d %s%s, %d bpw\n",
++				t->speed_hz,
++				len,
++				tx_buf ? "tx" : "",
++				rx_buf ? "rx" : "",
++				t->bits_per_word);
++		return -EINVAL;
++	}
+ 
+-		if (m->is_dma_mapped || len < DMA_MIN_BYTES)
+-			continue;
+-
+-		if (mcspi_dma->dma_tx && tx_buf != NULL) {
+-			t->tx_dma = dma_map_single(mcspi->dev, (void *) tx_buf,
+-					len, DMA_TO_DEVICE);
+-			if (dma_mapping_error(mcspi->dev, t->tx_dma)) {
+-				dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
+-						'T', len);
+-				status = -EINVAL;
+-				goto out;
+-			}
++	if (len < DMA_MIN_BYTES)
++		goto skip_dma_map;
++
++	if (mcspi_dma->dma_tx && tx_buf != NULL) {
++		t->tx_dma = dma_map_single(mcspi->dev, (void *) tx_buf,
++				len, DMA_TO_DEVICE);
++		if (dma_mapping_error(mcspi->dev, t->tx_dma)) {
++			dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
++					'T', len);
++			return -EINVAL;
+ 		}
+-		if (mcspi_dma->dma_rx && rx_buf != NULL) {
+-			t->rx_dma = dma_map_single(mcspi->dev, rx_buf, t->len,
+-					DMA_FROM_DEVICE);
+-			if (dma_mapping_error(mcspi->dev, t->rx_dma)) {
+-				dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
+-						'R', len);
+-				if (tx_buf != NULL)
+-					dma_unmap_single(mcspi->dev, t->tx_dma,
+-							len, DMA_TO_DEVICE);
+-				status = -EINVAL;
+-				goto out;
+-			}
++	}
++	if (mcspi_dma->dma_rx && rx_buf != NULL) {
++		t->rx_dma = dma_map_single(mcspi->dev, rx_buf, t->len,
++				DMA_FROM_DEVICE);
++		if (dma_mapping_error(mcspi->dev, t->rx_dma)) {
++			dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
++					'R', len);
++			if (tx_buf != NULL)
++				dma_unmap_single(mcspi->dev, t->tx_dma,
++						len, DMA_TO_DEVICE);
++			return -EINVAL;
+ 		}
+ 	}
+ 
+-	omap2_mcspi_work(mcspi, m);
+-	/* spi_finalize_current_message() changes the status inside the
+-	 * spi_message, save the status here. */
+-	status = m->status;
+-out:
+-	spi_finalize_current_message(master);
+-	return status;
++skip_dma_map:
++	return omap2_mcspi_work_one(mcspi, spi, t);
+ }
+ 
+ static int omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+@@ -1353,7 +1340,8 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 	master->bits_per_word_mask = SPI_BPW_RANGE_MASK(4, 32);
+ 	master->setup = omap2_mcspi_setup;
+ 	master->auto_runtime_pm = true;
+-	master->transfer_one_message = omap2_mcspi_transfer_one_message;
++	master->transfer_one = omap2_mcspi_transfer_one;
++	master->set_cs = omap2_mcspi_set_cs;
+ 	master->cleanup = omap2_mcspi_cleanup;
+ 	master->dev.of_node = node;
+ 	master->max_speed_hz = OMAP2_MCSPI_MAX_FREQ;
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+old mode 100644
+new mode 100755
+index 8fab566..a9db602
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -707,6 +707,7 @@ static struct class *spidev_class;
+ #ifdef CONFIG_OF
+ static const struct of_device_id spidev_dt_ids[] = {
+ 	{ .compatible = "rohm,dh2228fv" },
++	{ .compatible = "spidev" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, spidev_dt_ids);
+diff --git a/drivers/video/fbdev/da8xx-fb.c b/drivers/video/fbdev/da8xx-fb.c
+old mode 100644
+new mode 100755
+index 0081725..6abff54
+--- a/drivers/video/fbdev/da8xx-fb.c
++++ b/drivers/video/fbdev/da8xx-fb.c
+@@ -36,6 +36,8 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/lcm.h>
++#include <linux/of.h>
++#include <video/of_display_timing.h>
+ #include <video/da8xx-fb.h>
+ #include <asm/div64.h>
+ 
+@@ -139,6 +141,7 @@ static unsigned int lcd_revision;
+ static irq_handler_t lcdc_irq_handler;
+ static wait_queue_head_t frame_done_wq;
+ static int frame_done_flag;
++static bool u_boot_config = false;
+ 
+ static unsigned int lcdc_read(unsigned int addr)
+ {
+@@ -1270,7 +1273,7 @@ static int da8xxfb_set_par(struct fb_info *info)
+ 	int ret;
+ 	bool raster = da8xx_fb_is_raster_enabled();
+ 
+-	if (raster)
++	if (!u_boot_config && raster)
+ 		lcd_disable_raster(DA8XX_FRAME_WAIT);
+ 
+ 	fb_var_to_videomode(&par->mode, &info->var);
+@@ -1298,7 +1301,7 @@ static int da8xxfb_set_par(struct fb_info *info)
+ 	lcdc_write(par->dma_start, LCD_DMA_FRM_BUF_BASE_ADDR_1_REG);
+ 	lcdc_write(par->dma_end, LCD_DMA_FRM_BUF_CEILING_ADDR_1_REG);
+ 
+-	if (raster)
++	if (!u_boot_config && raster)
+ 		lcd_enable_raster();
+ 
+ 	return 0;
+@@ -1317,12 +1320,54 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_blank = cfb_blank,
+ };
+ 
++static struct lcd_ctrl_config *da8xx_fb_create_cfg(struct platform_device *dev)
++{
++	struct lcd_ctrl_config *cfg;
++
++	cfg = devm_kzalloc(&dev->dev, sizeof(struct fb_videomode), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	/* default values */
++
++	if (lcd_revision == LCD_VERSION_1)
++		cfg->bpp = 16;
++	else
++		cfg->bpp = 32;
++
++	/*
++	 * For panels so far used with this LCDC, below statement is sufficient.
++	 * For new panels, if required, struct lcd_ctrl_cfg fields to be updated
++	 * with additional/modified values. Those values would have to be then
++	 * obtained from dt(requiring new dt bindings).
++	 */
++
++	cfg->panel_shade = COLOR_ACTIVE;
++
++	return cfg;
++}
++
+ static struct fb_videomode *da8xx_fb_get_videomode(struct platform_device *dev)
+ {
+ 	struct da8xx_lcdc_platform_data *fb_pdata = dev_get_platdata(&dev->dev);
+ 	struct fb_videomode *lcdc_info;
++	struct device_node *np = dev->dev.of_node;
+ 	int i;
+ 
++	if (np) {
++		lcdc_info = devm_kzalloc(&dev->dev,
++					 sizeof(struct fb_videomode),
++					 GFP_KERNEL);
++		if (!lcdc_info)
++			return NULL;
++
++		if (of_get_fb_videomode(np, lcdc_info, OF_USE_NATIVE_MODE)) {
++			dev_err(&dev->dev, "timings not available in DT\n");
++			return NULL;
++		}
++		return lcdc_info;
++	}
++
+ 	for (i = 0, lcdc_info = known_lcd_panels;
+ 		i < ARRAY_SIZE(known_lcd_panels); i++, lcdc_info++) {
+ 		if (strcmp(fb_pdata->type, lcdc_info->name) == 0)
+@@ -1348,14 +1393,23 @@ static int fb_probe(struct platform_device *device)
+ 	struct fb_info *da8xx_fb_info;
+ 	struct da8xx_fb_par *par;
+ 	struct clk *tmp_lcdc_clk;
++	u32 videomemorysize;
++	u32 videomem_offset;
+ 	int ret;
+ 	unsigned long ulcm;
+ 
+-	if (fb_pdata == NULL) {
++	if (fb_pdata == NULL && !device->dev.of_node) {
+ 		dev_err(&device->dev, "Can not get platform data\n");
+ 		return -ENOENT;
+ 	}
+ 
++	if (of_find_property(device->dev.of_node, "u-boot-config", NULL))
++	{
++		u_boot_config = true;
++		of_property_read_u32(device->dev.of_node, "fb-baseaddr", &videomem_offset);
++		of_property_read_u32(device->dev.of_node, "fb-size-MB", &videomemorysize);
++	}
++
+ 	lcdc_info = da8xx_fb_get_videomode(device);
+ 	if (lcdc_info == NULL)
+ 		return -ENODEV;
+@@ -1391,7 +1445,10 @@ static int fb_probe(struct platform_device *device)
+ 		break;
+ 	}
+ 
+-	lcd_cfg = (struct lcd_ctrl_config *)fb_pdata->controller_data;
++	if (device->dev.of_node)
++		lcd_cfg = da8xx_fb_create_cfg(device);
++	else
++		lcd_cfg = fb_pdata->controller_data;
+ 
+ 	if (!lcd_cfg) {
+ 		ret = -EINVAL;
+@@ -1410,7 +1467,7 @@ static int fb_probe(struct platform_device *device)
+ 	par->dev = &device->dev;
+ 	par->lcdc_clk = tmp_lcdc_clk;
+ 	par->lcdc_clk_rate = clk_get_rate(par->lcdc_clk);
+-	if (fb_pdata->panel_power_ctrl) {
++	if (fb_pdata && fb_pdata->panel_power_ctrl) {
+ 		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
+ 		par->panel_power_ctrl(1);
+ 	}
+@@ -1418,7 +1475,8 @@ static int fb_probe(struct platform_device *device)
+ 	fb_videomode_to_var(&da8xx_fb_var, lcdc_info);
+ 	par->cfg = *lcd_cfg;
+ 
+-	da8xx_fb_lcd_reset();
++	if (!u_boot_config)
++		da8xx_fb_lcd_reset();
+ 
+ 	/* allocate frame buffer */
+ 	par->vram_size = lcdc_info->xres * lcdc_info->yres * lcd_cfg->bpp;
+@@ -1426,10 +1484,16 @@ static int fb_probe(struct platform_device *device)
+ 	par->vram_size = roundup(par->vram_size/8, ulcm);
+ 	par->vram_size = par->vram_size * LCD_NUM_BUFFERS;
+ 
+-	par->vram_virt = dma_alloc_coherent(NULL,
++	if(u_boot_config) {
++		par->vram_virt = ioremap(videomem_offset,(videomemorysize*1024*1024));
++		par->vram_phys = videomem_offset;
++	} else {
++		par->vram_virt = dma_alloc_coherent(NULL,
+ 					    par->vram_size,
+ 					    (resource_size_t *) &par->vram_phys,
+ 					    GFP_KERNEL | GFP_DMA);
++	}
++
+ 	if (!par->vram_virt) {
+ 		dev_err(&device->dev,
+ 			"GLCD: kmalloc for frame buffer failed\n");
+@@ -1457,10 +1521,12 @@ static int fb_probe(struct platform_device *device)
+ 		goto err_release_fb_mem;
+ 	}
+ 
+-	par->irq = platform_get_irq(device, 0);
+-	if (par->irq < 0) {
+-		ret = -ENOENT;
+-		goto err_release_pl_mem;
++	if(!u_boot_config) {
++		par->irq = platform_get_irq(device, 0);
++		if (par->irq < 0) {
++			ret = -ENOENT;
++			goto err_release_pl_mem;
++		}
+ 	}
+ 
+ 	da8xx_fb_var.grayscale =
+@@ -1509,6 +1575,14 @@ static int fb_probe(struct platform_device *device)
+ 	}
+ #endif
+ 
++	if(u_boot_config) {
++		par->irq = platform_get_irq(device, 0);
++		if (par->irq < 0) {
++			ret = -ENOENT;
++			goto err_release_pl_mem;
++		}
++	}
++
+ 	if (lcd_revision == LCD_VERSION_1)
+ 		lcdc_irq_handler = lcdc_irq_handler_rev01;
+ 	else {
+@@ -1654,11 +1728,25 @@ static int fb_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(fb_pm_ops, fb_suspend, fb_resume);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id da8xx_fb_of_match[] = {
++	/*
++	 * this driver supports version 1 and version 2 of the
++	 * Texas Instruments lcd controller (lcdc) hardware block
++	 */
++	{.compatible = "ti,da8xx-tilcdc", },
++	{.compatible = "ti,am33xx-tilcdc", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, da8xx_fb_of_match);
++#endif
++
+ static struct platform_driver da8xx_fb_driver = {
+ 	.probe = fb_probe,
+ 	.remove = fb_remove,
+ 	.driver = {
+ 		   .name = DRIVER_NAME,
++		   .of_match_table = of_match_ptr(da8xx_fb_of_match),
+ 		   .pm	= &fb_pm_ops,
+ 		   },
+ };
+diff --git a/drivers/w1/slaves/w1_therm.c b/drivers/w1/slaves/w1_therm.c
+old mode 100644
+new mode 100755
+index 55eb86c..5723f03
+--- a/drivers/w1/slaves/w1_therm.c
++++ b/drivers/w1/slaves/w1_therm.c
+@@ -70,11 +70,21 @@ struct w1_therm_family_data {
+ 
+ static int w1_therm_add_slave(struct w1_slave *sl)
+ {
++	struct w1_master *dev;
+ 	sl->family_data = kzalloc(sizeof(struct w1_therm_family_data),
+ 		GFP_KERNEL);
+ 	if (!sl->family_data)
+ 		return -ENOMEM;
+ 	atomic_set(THERM_REFCNT(sl->family_data), 1);
++
++	dev = sl->master;
++	if (!w1_reset_select_slave(sl)) {
++		w1_write_8(dev, W1_WRITE_SCRATCHPAD);
++		w1_write_8(dev, 0x4B);
++		w1_write_8(dev, 0x46);
++		w1_write_8(dev, 0x1F);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -235,7 +245,7 @@ static ssize_t w1_slave_show(struct device *device,
+ 
+ 		if (!w1_reset_select_slave(sl)) {
+ 			int count = 0;
+-			unsigned int tm = 750;
++			unsigned int tm = 94;
+ 			unsigned long sleep_rem;
+ 
+ 			w1_write_8(dev, W1_READ_PSUPPLY);
+diff --git a/drivers/w1/w1.h b/drivers/w1/w1.h
+old mode 100644
+new mode 100755
+index 56a49ba..40b281d
+--- a/drivers/w1/w1.h
++++ b/drivers/w1/w1.h
+@@ -59,6 +59,7 @@ struct w1_reg_num
+ #define W1_CONVERT_TEMP		0x44
+ #define W1_SKIP_ROM		0xCC
+ #define W1_READ_SCRATCHPAD	0xBE
++#define W1_WRITE_SCRATCHPAD	0x4E
+ #define W1_READ_ROM		0x33
+ #define W1_READ_PSUPPLY		0xB4
+ #define W1_MATCH_ROM		0x55
+diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
+old mode 100644
+new mode 100755
+index ac7fba4..b0c53e4
+--- a/include/linux/mfd/tps65217.h
++++ b/include/linux/mfd/tps65217.h
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
++#include <linux/input.h>
+ 
+ /* TPS chip id list */
+ #define TPS65217			0xF0
+@@ -257,6 +258,11 @@ struct tps65217 {
+ 	unsigned long id;
+ 	struct regulator_desc desc[TPS65217_NUM_REGULATOR];
+ 	struct regmap *regmap;
++
++	/* Power button and IRQ handling */
++	int irq_gpio;	/* might not be set */
++	int irq;
++	struct input_dev *pwr_but;
+ };
+ 
+ static inline struct tps65217 *dev_to_tps65217(struct device *dev)
+-- 
+1.9.1
+
