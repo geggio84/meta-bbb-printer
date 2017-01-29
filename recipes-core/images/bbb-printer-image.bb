@@ -5,7 +5,8 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
 
 IMAGE_FSTYPES = "tar.gz"
 
-#inherit tisdk-image
+inherit rootfs_ipk
+inherit image_types
 inherit remove-net-rules
 inherit core-image
 
@@ -15,7 +16,34 @@ ROOTFS_POSTPROCESS_COMMAND += "make_zimage_symlink_relative;"
 
 COMPATIBLE_MACHINE = "bbb-printer"
 
-IMAGE_FEATURES += "package-management splash"
+IMAGE_FEATURES += "sdk_base package-management splash"
+IMAGE_FEATURES[type] = "list"
+
+# Define our always included sdk package group as the IMAGE_INSTALL settings
+# like you would expect.
+FEATURE_PACKAGES_sdk_base = "${IMAGE_INSTALL}"
+
+TARGET_IMAGES ?= "arago-base-tisdk-image"
+
+# path to install the meta-toolchain package in the SDK
+TISDK_TOOLCHAIN_PATH ?= "linux-devkit"
+
+# meta toolchain recipe to build and package as part of the tisdk image
+TISDK_TOOLCHAIN ?= "meta-toolchain-arago"
+TOOLCHAIN_SUFFIX ?= "-sdk"
+
+# helper function for generating a set of strings based on a list.  Taken
+# from the image.bbclass.
+def string_set(iterable):
+    return ' '.join(set(iterable))
+
+# Add a dependency for the do_populate_sdk function of the TIDSK_TOOLCHAIN
+# variable which will force us to build the toolchain first so that it will be
+# available for packaging
+do_rootfs[depends] += "${@string_set('%s:do_populate_sdk' % pn for pn in (d.getVar("TISDK_TOOLCHAIN", True) or "").split())}"
+
+# Variable to specify the name of SPL
+DEPLOY_SPL_NAME ?= "MLO-${MACHINE}"
 
 U-BOOT_SRC = "${PREFERRED_PROVIDER_virtual/bootloader}-src"
 KERNEL_SRC = "${PREFERRED_PROVIDER_virtual/kernel}-src"
@@ -64,7 +92,6 @@ ARAGO_IMAGE_EXTRA_INSTALL ?= ""
 IMAGE_INSTALL += "\
     bbb-marlin \
     update-scripts \
-    nfs-exports \
     pru-firmware \
     packagegroup-core-boot \
     bash \
