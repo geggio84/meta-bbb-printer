@@ -68,27 +68,6 @@ TOOLCHAIN_SUFFIX = "-tisdk"
 
 ARAGO_IMAGE_EXTRA_INSTALL ?= ""
 
-# packagegroup-arago-tisdk-matrix-sdk-host
-# packagegroup-arago-tisdk-matrix
-# packagegroup-arago-test
-# packagegroup-arago-tisdk-graphics
-# packagegroup-arago-tisdk-qte
-# packagegroup-arago-tisdk-addons
-# packagegroup-arago-tisdk-connectivity
-# packagegroup-arago-tisdk-crypto
-# packagegroup-arago-tisdk-multimedia
-# packagegroup-arago-tisdk-amsdk
-# packagegroup-arago-tisdk-addons-extra
-# packagegroup-arago-tisdk-addons-sdk-host
-# packagegroup-arago-tisdk-crypto-sdk-host
-# packagegroup-arago-tisdk-graphics-sdk-host
-# packagegroup-arago-tisdk-multimedia-sdk-host
-# packagegroup-arago-tisdk-amsdk-sdk-host
-# packagegroup-arago-tisdk-qte-sdk-host
-# packagegroup-arago-base
-# packagegroup-arago-console
-# packagegroup-arago-base-tisdk
-
 IMAGE_INSTALL += "\
     bbb-marlin \
     update-scripts \
