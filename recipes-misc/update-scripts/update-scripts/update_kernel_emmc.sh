@@ -4,6 +4,8 @@ mkdir -p /media/mmcblk1p1
 
 mount /dev/mmcblk1p1 /media/mmcblk1p1
 
-scp matteo@192.168.85.9:/tftpboot/beaglebone/\{am335x-boneblack.dtb,zImage\} /media/mmcblk1p1/boot/
+scp matteo@192.168.85.9:/tftpboot/beaglebone/\{bbb-printer.dtb,zImage\} /media/mmcblk1p1/boot/
+
+cp /media/mmcblk1p1/boot/bbb-printer.dtb /media/mmcblk1p1/boot/am335x-boneblack.dtb
 
 umount /media/mmcblk1p1
