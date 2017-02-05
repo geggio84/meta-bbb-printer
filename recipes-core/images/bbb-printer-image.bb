@@ -19,6 +19,8 @@ COMPATIBLE_MACHINE = "bbb-printer"
 IMAGE_FEATURES += "sdk_base package-management splash"
 IMAGE_FEATURES[type] = "list"
 
+DISTRO_FEATURES_remove += " wayland"
+
 # Define our always included sdk package group as the IMAGE_INSTALL settings
 # like you would expect.
 FEATURE_PACKAGES_sdk_base = "${IMAGE_INSTALL}"
@@ -254,6 +256,8 @@ RDEPENDS_${PN} += "\
     ${U-BOOT_SRC} \
     ${KERNEL_SRC} \
     tisdk-install \
+    libgbm-dev \
+    omap5-sgx-ddk-um-linux-dev \
     "
 
 RRECOMMENDS_${PN} += "\
