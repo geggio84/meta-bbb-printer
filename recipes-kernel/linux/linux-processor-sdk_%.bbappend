@@ -1,9 +1,9 @@
 
 IMAGE_ROOTFS_SIZE = "16384"
 
-FILESEXTRAPATHS_append := "${THISDIR}/patches:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-4.1:"
 
-SRC_URI_append = " \
+SRC_URI += " \
 	file://0001-Initial-support-for-bbb-printer.patch \
 	file://defconfig \
 "
