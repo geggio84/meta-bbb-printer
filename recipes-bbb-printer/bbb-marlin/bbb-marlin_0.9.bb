@@ -12,7 +12,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 
 SRCREV = "ebf76f824e724c77abb8a94412c88d1d6d72bcfb"
 SRCBRANCH="BB_Marlin"
-SRC_URI = "git://github.com/geggio84/Marlin.git;branch=${SRCBRANCH}"
+SRC_URI = "git://github.com/geggio84/Marlin.git;protocol=https;branch=${SRCBRANCH}"
 
 S = "${WORKDIR}/git"
 

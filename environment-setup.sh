@@ -5,7 +5,7 @@
 oebase=`pwd`
 
 # Populate the following variables depending on the value of oebase
-sourcedir="$oebase/src"
+sourcedir="$oebase/source"
 builddir="$oebase/build"
 confdir="$builddir/conf"
 
@@ -40,7 +40,7 @@ sed -i "s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS = \"${threads}\"/" $confdir/loc
 export OEBASE=${oebase}
 
 # try to find out bitbake directory
-BITBAKEDIR=`find ${OEBASE}/src -name "*bitbake*"`
+BITBAKEDIR=`find ${OEBASE}/source -name "*bitbake*"`
 for f in ${BITBAKEDIR}
 do
     if [ -d ${f}/bin ]
@@ -51,7 +51,7 @@ done
 
 # check for any scripts directories in the top-level of the repos and add those
 # to the PATH
-SCRIPTS=`find ${OEBASE}/src -maxdepth 2 -name "scripts" -type d`
+SCRIPTS=`find ${OEBASE}/source -maxdepth 2 -name "scripts" -type d`
 for s in ${SCRIPTS}
 do
     PATH="${s}:$PATH"

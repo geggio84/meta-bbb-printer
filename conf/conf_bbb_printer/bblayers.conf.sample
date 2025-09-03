@@ -16,5 +16,5 @@ BBLAYERS ?= " \
 	##COREBASE##/meta-openembedded/meta-oe \
 	##COREBASE##/meta-ti \
 	##COREBASE##/meta-linaro/meta-linaro-toolchain \
-	##COREBASE##/oe-core/meta \
+	##COREBASE##/openembedded-core/meta \
 "
