@@ -79,28 +79,18 @@ IMAGE_INSTALL += "\
     udev-extraconf \
     ${ARAGO_IMAGE_EXTRA_INSTALL} \
     input-utils \
-    cpuloadgen \
     timestamping \
     omapconf \
-    bonnie++ \
-    hdparm \
     iozone3 \
-    iperf \
     lmbench \
-    rt-tests \
     evtest \
     bc \
-    memtester \
     libdrm-tests \
-    powertop \
-    stress \
     yavta \
-    rng-tools \
     perf \
     v4l-utils \
     smcroute \
     rwmem \
-    cpuburn-neon \
     pulseaudio-misc \
     kselftests \
     cpuset \
@@ -120,18 +110,13 @@ IMAGE_INSTALL += "\
     qtquick1-plugins \
     qtquick1-qmlplugins \
     am-sysinfo \
-    dt \
     gdbserver \
-    oprofile \
     nbench-byte \
     trace-cmd \
-    arm-benchmarks \
     dropbear \
     openssh-sftp-server \
     ptpd \
     libdrm-kms \
-    valgrind \
-    stream \
     u-boot-fw-utils \
     mmc-utils \
     switch-config \
@@ -141,7 +126,6 @@ IMAGE_INSTALL += "\
     packagegroup-core-tools-debug \
     git \
     wireless-tools \
-    htop \
     iw \
     softap-udhcpd-config \
     obexd \
@@ -150,23 +134,13 @@ IMAGE_INSTALL += "\
     pulseaudio-server \
     pulseaudio-module-loopback \
     eventdump \
-    wlconf \
-    wpa-supplicant-wl18xx \
     crda \
-    hostap-daemon-wl18xx \
-    ti-wifi-utils-wl18xx \
-    wl18xx-target-scripts \
     iptables \
-    bluez4 \
-    bluez4-agent \
-    bluez-hcidump \
     uim \
-    bt-firmware \
     openssl \
     openssl-misc \
     openssl-engines \
     cryptodev-module \
-    cryptodev-tests \
     packagegroup-arago-gst \
     screenshot \
     alsa-lib \
@@ -179,7 +153,6 @@ IMAGE_INSTALL += "\
     ethtool \
     thermal-init \
     devmem2 \
-    tcpdump \
     alsa-conf \
     alsa-conf-base \
     alsa-server \
@@ -226,7 +199,6 @@ IMAGE_INSTALL += "\
     libxml2 \
     libpcre \
     iptables \
-    iperf \
     arago-gpl-notice \
     arago-feed-config \
     nfs-utils-client \
