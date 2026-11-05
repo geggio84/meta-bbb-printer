@@ -1,8 +1,8 @@
 DESCRIPTION = "A simple ramdisk for bbb-printer"
 LICENSE = "MIT"
 
-IMAGE_CLASSES += "image_types_uboot"
-INHERIT += "image_types_uboot"
+#IMAGE_CLASSES += "image_types_uboot"
+#INHERIT += "image_types_uboot"
 
 # Image in ext2 format and with U-Boot header
 IMAGE_FSTYPES := "ext2.gz ext2.gz.u-boot tar.gz"

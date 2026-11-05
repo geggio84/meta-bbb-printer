@@ -1,0 +1,30 @@
+From a961e15cc25870e9c088cfc884840f8b9c8b13a1 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:30:43 +0100
+Subject: [PATCH 16/17] Fix 16 bit LCD configuration
+
+Drive the LCD panel at 16 bpp (RGB565): set bpp = <16> in the panel
+description, which makes tilcdc use 16-bit raster mode and a 16 bpp
+frame buffer.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/dts/am335x-boneblack-u-boot.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/dts/am335x-boneblack-u-boot.dtsi b/arch/arm/dts/am335x-boneblack-u-boot.dtsi
+index e7bbbaa5009..7dd5786276f 100644
+--- a/arch/arm/dts/am335x-boneblack-u-boot.dtsi
++++ b/arch/arm/dts/am335x-boneblack-u-boot.dtsi
+@@ -17,7 +17,7 @@
+ 			ac-bias = <255>;
+ 			ac-bias-intrpt = <0>;
+ 			dma-burst-sz = <16>;
+-			bpp = <32>;
++			bpp = <16>;
+ 			fdd = <0x80>;
+ 			sync-edge = <0>;
+ 			sync-ctrl = <1>;
+-- 
+2.39.5
+

@@ -1,0 +1,39 @@
+From 1d67d1f9ae19ccddbc541db2ed4474554234486e Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:18:58 +0100
+Subject: [PATCH 09/17] Add shutdown command
+
+Add a 'shutdown' command that powers off the board through
+am335x_rtc_poweroff(). Ported to the current struct cmd_tbl
+command signature.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ board/ti/am335x/board.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index 061c96a15b5..f4cd64ca1fb 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -1191,3 +1191,17 @@ U_BOOT_DRVINFO(am335x_mmc1) = {
+ 	.plat = &am335x_mmc1_plat,
+ };
+ #endif
++
++#if !defined(CONFIG_XPL_BUILD)
++static int do_shutdown(struct cmd_tbl *cmdtp, int flag, int argc,
++		       char *const argv[])
++{
++	am335x_rtc_poweroff();
++	return 0;
++}
++
++U_BOOT_CMD(shutdown, 1, 0, do_shutdown,
++	   "power off the board",
++	   ""
++);
++#endif
+-- 
+2.39.5
+

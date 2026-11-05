@@ -1,0 +1,61 @@
+From 44f8511f4d767d951ce0bbdb1bc64abe6b848e3b Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 4 Nov 2026 03:31:03 +0100
+Subject: [PATCH 2/5] w1: therm: add default_resolution module parameter
+
+Allow setting the resolution of every newly attached sensor through a
+module parameter (w1_therm.default_resolution=<bits>). The conversion
+time follows the resolution, so e.g. 9 bits on a DS18B20 reduces the
+reading time from 750ms to ~94ms, as needed by the bbb-printer
+temperature loops.
+
+The default (0) keeps the resolution currently set in the device, so
+existing behaviour is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ drivers/w1/slaves/w1_therm.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/drivers/w1/slaves/w1_therm.c b/drivers/w1/slaves/w1_therm.c
+index c85e80c7e130..23df0d77a804 100644
+--- a/drivers/w1/slaves/w1_therm.c
++++ b/drivers/w1/slaves/w1_therm.c
+@@ -44,6 +44,16 @@
+ static int w1_strong_pullup = 1;
+ module_param_named(strong_pullup, w1_strong_pullup, int, 0);
+ 
++/*
++ * Resolution (in bits) applied to every newly discovered device supporting
++ * it, e.g. 9 for a DS18B20 lowers the conversion time from 750ms to ~94ms.
++ * 0 (the default) keeps the resolution currently configured in the device.
++ */
++static int w1_default_resolution;
++module_param_named(default_resolution, w1_default_resolution, int, 0444);
++MODULE_PARM_DESC(default_resolution,
++		 "Resolution in bits set on newly attached devices (0 = keep device setting)");
++
+ /* Counter for devices supporting bulk reading */
+ static u16 bulk_read_device_counter; /* =0 as per C standard */
+ 
+@@ -1027,6 +1037,17 @@ static int w1_therm_add_slave(struct w1_slave *sl)
+ 			 __func__, SLAVE_POWERMODE(sl));
+ 	}
+ 
++	/* Apply the default resolution requested by module parameter */
++	if (w1_default_resolution && SLAVE_SPECIFIC_FUNC(sl)->set_resolution) {
++		int err = SLAVE_SPECIFIC_FUNC(sl)->set_resolution(sl,
++					w1_default_resolution);
++
++		if (err)
++			dev_warn(&sl->dev,
++				"%s: Device has been added, but setting resolution to %d bits failed. err=%d\n",
++				__func__, w1_default_resolution, err);
++	}
++
+ 	/* Getting the resolution of the device */
+ 	if (SLAVE_SPECIFIC_FUNC(sl)->get_resolution) {
+ 		SLAVE_RESOLUTION(sl) =
+-- 
+2.39.5
+

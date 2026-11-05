@@ -1,0 +1,29 @@
+From b2cd7d3ab0fb7d5d1ab07006cfa9a6c86c18e385 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:30:05 +0100
+Subject: [PATCH 15/17] Add ramdisk size parameter on kernel bootcmd line
+
+Pass ramdisk_size=32768 to the kernel when booting the ramdisk.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ include/configs/am335x_evm.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 7ac5018f4e6..97f3c7fc78c 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -126,7 +126,8 @@
+ 	"ramargs=setenv bootargs console=${console} " \
+ 		"${optargs} " \
+ 		"root=${ramroot} " \
+-		"rootfstype=${ramrootfstype}\0" \
++		"rootfstype=${ramrootfstype} " \
++		"ramdisk_size=32768\0" \
+ 	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ${bootdir}/ramdisk-bbb.gz\0" \
+ 	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+ 	"loadinitrd=load mmc ${bootpart} ${initrd_addr} ${bootdir}/${initrd_file}; setenv initrd_size ${filesize}\0" \
+-- 
+2.39.5
+

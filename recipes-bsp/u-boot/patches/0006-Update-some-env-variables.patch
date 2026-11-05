@@ -1,0 +1,48 @@
+From 9791b31111e0b45f30ff90d2700209d22a9d78ed Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:14:39 +0100
+Subject: [PATCH 06/17] Update some env variables
+
+- Add an empty 'bootdir' variable to the default environment.
+- Disable SPL_OS_BOOT (Falcon mode): SPL always loads U-Boot proper.
+  The 2015 patch did this with #undef CONFIG_SPL_OS_BOOT for
+  CONFIG_EMMC_BOOT; it is a Kconfig option now.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ configs/am335x_evm_defconfig | 6 ------
+ include/configs/am335x_evm.h | 1 +
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/configs/am335x_evm_defconfig b/configs/am335x_evm_defconfig
+index e42bb93d9f2..4383713cd56 100644
+--- a/configs/am335x_evm_defconfig
++++ b/configs/am335x_evm_defconfig
+@@ -33,12 +33,6 @@ CONFIG_SPL_NAND_ECC=y
+ CONFIG_SPL_NAND_BASE=y
+ CONFIG_SPL_NET=y
+ CONFIG_SPL_NET_VCI_STRING="AM335x U-Boot SPL"
+-CONFIG_SPL_OS_BOOT=y
+-CONFIG_SYS_NAND_SPL_KERNEL_OFFS=0x200000
+-CONFIG_SPL_FALCON_BOOT_MMCSD=y
+-CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR=0x1700
+-CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR=0x1500
+-CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS=0x200
+ # CONFIG_SPL_YMODEM_SUPPORT is not set
+ CONFIG_CMD_EXTENSION=y
+ CONFIG_CMD_SPL=y
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index deffb08ab62..1aa4a5e4ac2 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -91,6 +91,7 @@
+ #define CFG_EXTRA_ENV_SETTINGS \
+ 	DEFAULT_LINUX_BOOT_ENV \
+ 	SPLASH_ARGS \
++	"bootdir=\0" \
+ 	"fdtfile=undefined\0" \
+ 	"finduuid=part uuid mmc 0:2 uuid\0" \
+ 	"console=ttyO0,115200n8\0" \
+-- 
+2.39.5
+

@@ -1,50 +1,215 @@
-From c081361f4d42ab10ad7b6e13cccfad5bec5dadc4 Mon Sep 17 00:00:00 2001
+From 826035f8fd1aae3a1121ab29343ff7bfc697b365 Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
-Date: Mon, 2 Nov 2015 23:16:03 +0100
-Subject: [PATCH 02/19] Add video drivers for BeagleBone
+Date: Mon, 2 Nov 2026 22:04:33 +0100
+Subject: [PATCH 02/17] Add video drivers for BeagleBone
 
+Enable DM video support with the AM335x LCD controller (tilcdc) driver
+in am335x_evm_defconfig, together with the TI clock drivers (and
+regmap) needed by tilcdc to program the LCD pixel clock.
+
+Enabling AM335X_LCD made the EVM LCD pinmux table part of SPL, which
+then overflowed SRAM. The LCD is only used by U-Boot proper, so move
+the LCD pinmux into mux_lcd.c (built for U-Boot proper only) and
+apply it from board_init().
+
+Ported from the 2015 patch, which added the da8xx-fb / cfb_console
+Kconfig symbols that no longer exist.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
- configs/am335x_boneblack_defconfig |  2 ++
- drivers/video/Kconfig              | 18 ++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ board/ti/am335x/Makefile     |  4 +++
+ board/ti/am335x/board.c      |  3 ++
+ board/ti/am335x/board.h      |  1 +
+ board/ti/am335x/mux.c        | 38 -------------------------
+ board/ti/am335x/mux_lcd.c    | 55 ++++++++++++++++++++++++++++++++++++
+ configs/am335x_evm_defconfig |  8 ++++++
+ 6 files changed, 71 insertions(+), 38 deletions(-)
+ create mode 100644 board/ti/am335x/mux_lcd.c
 
-diff --git a/configs/am335x_boneblack_defconfig b/configs/am335x_boneblack_defconfig
-index 60339c8..8b3eb9e 100644
---- a/configs/am335x_boneblack_defconfig
-+++ b/configs/am335x_boneblack_defconfig
-@@ -8,3 +8,5 @@ CONFIG_SYS_EXTRA_OPTIONS="EMMC_BOOT"
- # CONFIG_CMD_FLASH is not set
- # CONFIG_CMD_SETEXPR is not set
- CONFIG_SPI_FLASH=y
-+CONFIG_VIDEO_DA8XX=y
-+CONFIG_CFB_CONSOLE=y
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 9ae23e8..fe2cf83 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -240,3 +240,21 @@ config VIDEO_TEGRA124
- 	   HDMI. At present only eDP is supported by U-Boot. This option
- 	   enables this support which can be used on devices which
- 	   have an eDP display connected.
+diff --git a/board/ti/am335x/Makefile b/board/ti/am335x/Makefile
+index 7df62fadb7f..77bab2e62ba 100644
+--- a/board/ti/am335x/Makefile
++++ b/board/ti/am335x/Makefile
+@@ -9,3 +9,7 @@ obj-y	:= mux.o
+ endif
+ 
+ obj-y	+= board.o
 +
-+config VIDEO_DA8XX
-+	bool "Enable video framebuffer DA8XX"
-+	help
-+	  Set DA8XX framebuffer mode (needed for bootsplash and graphical
-+	  framebuffer console)
++ifeq ($(CONFIG_XPL_BUILD),)
++obj-$(CONFIG_AM335X_LCD) += mux_lcd.o
++endif
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index b18ae305a1e..90e4c001bb1 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -774,6 +774,9 @@ int board_init(void)
+ #endif
+ 
+ 	gd->bd->bi_boot_params = CFG_SYS_SDRAM_BASE + 0x100;
++#if IS_ENABLED(CONFIG_AM335X_LCD) && !defined(CONFIG_XPL_BUILD)
++	enable_board_lcd_pin_mux();
++#endif
+ #if defined(CONFIG_NOR) || defined(CONFIG_MTD_RAW_NAND)
+ 	gpmc_init();
+ #endif
+diff --git a/board/ti/am335x/board.h b/board/ti/am335x/board.h
+index 2fe88d3d3f8..90d34b7a4b4 100644
+--- a/board/ti/am335x/board.h
++++ b/board/ti/am335x/board.h
+@@ -102,4 +102,5 @@ void enable_uart5_pin_mux(void);
+ void enable_i2c0_pin_mux(void);
+ void enable_i2c2_pin_mux(void);
+ void enable_board_pin_mux(void);
++void enable_board_lcd_pin_mux(void);
+ #endif
+diff --git a/board/ti/am335x/mux.c b/board/ti/am335x/mux.c
+index d2d87c304f6..9f8fa953f80 100644
+--- a/board/ti/am335x/mux.c
++++ b/board/ti/am335x/mux.c
+@@ -274,40 +274,6 @@ static struct module_pin_mux uart3_icev2_pin_mux[] = {
+ 	{-1},
+ };
+ 
+-#if (IS_ENABLED(CONFIG_AM335X_LCD))
+-static struct module_pin_mux lcd_pin_mux[] = {
+-	{OFFSET(lcd_data0), (MODE(0))},		/* LCD-Data(0) */
+-	{OFFSET(lcd_data1), (MODE(0))},		/* LCD-Data(1) */
+-	{OFFSET(lcd_data2), (MODE(0))},		/* LCD-Data(2) */
+-	{OFFSET(lcd_data3), (MODE(0))},		/* LCD-Data(3) */
+-	{OFFSET(lcd_data4), (MODE(0))},		/* LCD-Data(4) */
+-	{OFFSET(lcd_data5), (MODE(0))},		/* LCD-Data(5) */
+-	{OFFSET(lcd_data6), (MODE(0))},		/* LCD-Data(6) */
+-	{OFFSET(lcd_data7), (MODE(0))},		/* LCD-Data(7) */
+-	{OFFSET(lcd_data8), (MODE(0))},		/* LCD-Data(8) */
+-	{OFFSET(lcd_data9), (MODE(0))},		/* LCD-Data(9) */
+-	{OFFSET(lcd_data10), (MODE(0))},	/* LCD-Data(10) */
+-	{OFFSET(lcd_data11), (MODE(0))},	/* LCD-Data(11) */
+-	{OFFSET(lcd_data12), (MODE(0))},	/* LCD-Data(12) */
+-	{OFFSET(lcd_data13), (MODE(0))},	/* LCD-Data(13) */
+-	{OFFSET(lcd_data14), (MODE(0))},	/* LCD-Data(14) */
+-	{OFFSET(lcd_data15), (MODE(0))},	/* LCD-Data(15) */
+-	{OFFSET(gpmc_ad15), (MODE(1))},		/* LCD-Data(16) */
+-	{OFFSET(gpmc_ad14), (MODE(1))},		/* LCD-Data(17) */
+-	{OFFSET(gpmc_ad13), (MODE(1))},		/* LCD-Data(18) */
+-	{OFFSET(gpmc_ad12), (MODE(1))},		/* LCD-Data(19) */
+-	{OFFSET(gpmc_ad11), (MODE(1))},		/* LCD-Data(20) */
+-	{OFFSET(gpmc_ad10), (MODE(1))},		/* LCD-Data(21) */
+-	{OFFSET(gpmc_ad9), (MODE(1))},		/* LCD-Data(22) */
+-	{OFFSET(gpmc_ad8), (MODE(1))},		/* LCD-Data(23) */
+-	{OFFSET(lcd_vsync), (MODE(0))},		/* LCD-VSync */
+-	{OFFSET(lcd_hsync), (MODE(0))},		/* LCD-HSync */
+-	{OFFSET(lcd_ac_bias_en), (MODE(0))},	/* LCD-DE */
+-	{OFFSET(lcd_pclk), (MODE(0))},		/* LCD-CLK */
+-	{-1},
+-};
+-#endif
+-
+ #if (IS_ENABLED(CONFIG_PWM_TI_ECAP))
+ static struct module_pin_mux ecap_pin_mux[] = {
+ 	{OFFSET(ecap0_in_pwm0_out), (MODE(0))},         /* ecap0_in_pwm0_out */
+@@ -430,10 +396,6 @@ void enable_board_pin_mux(void)
+ 			configure_module_pin_mux(mmc1_pin_mux);
+ 			configure_module_pin_mux(spi0_pin_mux);
+ 		}
+-		#if IS_ENABLED(CONFIG_AM335X_LCD)
+-			configure_module_pin_mux(lcd_pin_mux);
+-		#endif
+-
+ 		#if IS_ENABLED(CONFIG_PWM_TI_ECAP)
+ 			configure_module_pin_mux(ecap_pin_mux);
+ 		#endif
+diff --git a/board/ti/am335x/mux_lcd.c b/board/ti/am335x/mux_lcd.c
+new file mode 100644
+index 00000000000..ba3c52f5e88
+--- /dev/null
++++ b/board/ti/am335x/mux_lcd.c
+@@ -0,0 +1,55 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * mux_lcd.c - LCD pin multiplexing for AM335x boards
++ *
++ * The LCD is only driven by U-Boot proper, so its pins are configured
++ * there rather than in SPL, which is very tight on SRAM.
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - https://www.ti.com/
++ */
 +
-+config AM335X_LCD
-+	bool "Enable video framebuffer AM335X_LCD"
-+	help
-+	  Set AM335X_LCD framebuffer mode (needed for bootsplash and graphical
-+	  framebuffer console)
++#include <config.h>
++#include <asm/arch/sys_proto.h>
++#include <asm/arch/hardware.h>
++#include <asm/arch/mux.h>
++#include <asm/io.h>
++#include "../common/board_detect.h"
++#include "board.h"
 +
-+config CFB_CONSOLE
-+	bool "Set framebuffer Console"
-+	help
-+	  Set CFB_CONSOLE framebuffer mode (needed for bootsplash and graphical
-+	  framebuffer console)
-\ No newline at end of file
++static struct module_pin_mux lcd_pin_mux[] = {
++	{OFFSET(lcd_data0), (MODE(0))},		/* LCD-Data(0) */
++	{OFFSET(lcd_data1), (MODE(0))},		/* LCD-Data(1) */
++	{OFFSET(lcd_data2), (MODE(0))},		/* LCD-Data(2) */
++	{OFFSET(lcd_data3), (MODE(0))},		/* LCD-Data(3) */
++	{OFFSET(lcd_data4), (MODE(0))},		/* LCD-Data(4) */
++	{OFFSET(lcd_data5), (MODE(0))},		/* LCD-Data(5) */
++	{OFFSET(lcd_data6), (MODE(0))},		/* LCD-Data(6) */
++	{OFFSET(lcd_data7), (MODE(0))},		/* LCD-Data(7) */
++	{OFFSET(lcd_data8), (MODE(0))},		/* LCD-Data(8) */
++	{OFFSET(lcd_data9), (MODE(0))},		/* LCD-Data(9) */
++	{OFFSET(lcd_data10), (MODE(0))},	/* LCD-Data(10) */
++	{OFFSET(lcd_data11), (MODE(0))},	/* LCD-Data(11) */
++	{OFFSET(lcd_data12), (MODE(0))},	/* LCD-Data(12) */
++	{OFFSET(lcd_data13), (MODE(0))},	/* LCD-Data(13) */
++	{OFFSET(lcd_data14), (MODE(0))},	/* LCD-Data(14) */
++	{OFFSET(lcd_data15), (MODE(0))},	/* LCD-Data(15) */
++	{OFFSET(gpmc_ad15), (MODE(1))},		/* LCD-Data(16) */
++	{OFFSET(gpmc_ad14), (MODE(1))},		/* LCD-Data(17) */
++	{OFFSET(gpmc_ad13), (MODE(1))},		/* LCD-Data(18) */
++	{OFFSET(gpmc_ad12), (MODE(1))},		/* LCD-Data(19) */
++	{OFFSET(gpmc_ad11), (MODE(1))},		/* LCD-Data(20) */
++	{OFFSET(gpmc_ad10), (MODE(1))},		/* LCD-Data(21) */
++	{OFFSET(gpmc_ad9), (MODE(1))},		/* LCD-Data(22) */
++	{OFFSET(gpmc_ad8), (MODE(1))},		/* LCD-Data(23) */
++	{OFFSET(lcd_vsync), (MODE(0))},		/* LCD-VSync */
++	{OFFSET(lcd_hsync), (MODE(0))},		/* LCD-HSync */
++	{OFFSET(lcd_ac_bias_en), (MODE(0))},	/* LCD-DE */
++	{OFFSET(lcd_pclk), (MODE(0))},		/* LCD-CLK */
++	{-1},
++};
++
++void enable_board_lcd_pin_mux(void)
++{
++	if (board_is_gp_evm())
++		configure_module_pin_mux(lcd_pin_mux);
++}
+diff --git a/configs/am335x_evm_defconfig b/configs/am335x_evm_defconfig
+index 2b68902edef..bcfb2ab2223 100644
+--- a/configs/am335x_evm_defconfig
++++ b/configs/am335x_evm_defconfig
+@@ -59,11 +59,17 @@ CONFIG_SPL_ENV_IS_NOWHERE=y
+ CONFIG_VERSION_VARIABLE=y
+ CONFIG_NET_RETRY_COUNT=10
+ CONFIG_BOOTP_SEND_HOSTNAME=y
++CONFIG_REGMAP=y
+ CONFIG_BOOTCOUNT_LIMIT=y
+ CONFIG_SYS_BOOTCOUNT_BE=y
+ CONFIG_CLK=y
++CONFIG_CLK_CCF=y
+ CONFIG_CLK_CDCE9XX=y
++CONFIG_CLK_TI_AM3_DPLL=y
+ CONFIG_CLK_TI_CTRL=y
++CONFIG_CLK_TI_DIVIDER=y
++CONFIG_CLK_TI_GATE=y
++CONFIG_CLK_TI_MUX=y
+ CONFIG_DFU_TFTP=y
+ CONFIG_DFU_MMC=y
+ CONFIG_DFU_NAND=y
+@@ -116,6 +122,8 @@ CONFIG_USB_GADGET_VENDOR_NUM=0x0451
+ CONFIG_USB_GADGET_PRODUCT_NUM=0xd022
+ CONFIG_USB_ETHER=y
+ CONFIG_SPL_USB_ETHER=y
++CONFIG_VIDEO=y
++CONFIG_AM335X_LCD=y
+ CONFIG_WDT=y
+ # CONFIG_SPL_WDT is not set
+ CONFIG_DYNAMIC_CRC_TABLE=y
 -- 
-1.9.1
+2.39.5
 

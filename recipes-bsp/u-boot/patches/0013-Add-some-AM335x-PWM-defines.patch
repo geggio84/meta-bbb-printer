@@ -1,0 +1,31 @@
+From a98b4bd4083822749f3a8f7090798d006975088a Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:26:48 +0100
+Subject: [PATCH 13/17] Add some AM335x PWM defines
+
+Add the PWMSS1 / eCAP1 / ePWM1 base addresses.
+
+The rest of the 2015 patch (EPWM_CLK_EN/EPWM_CLK_STOP_REQ and the ePWM
+register layout, now struct pwmss_epwm_regs) is already upstream.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/include/asm/arch-am33xx/hardware_am33xx.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h b/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
+index de597c2775f..e02b95f7927 100644
+--- a/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
++++ b/arch/arm/include/asm/arch-am33xx/hardware_am33xx.h
+@@ -73,4 +73,8 @@
+ #define AM33XX_ECAP0_BASE		0x48300100
+ #define AM33XX_EPWM_BASE		0x48300200
+ 
++#define PWMSS1_BASE			0x48302000
++#define AM33XX_ECAP1_BASE		0x48302100
++#define AM33XX_EPWM1_BASE		0x48302200
++
+ #endif /* __AM33XX_HARDWARE_AM33XX_H */
+-- 
+2.39.5
+

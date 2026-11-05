@@ -1,4 +1,4 @@
 
-UTILS_remove_ti33x = " \
+UTILS:remove:ti33x = " \
     opencv-dev \
 "

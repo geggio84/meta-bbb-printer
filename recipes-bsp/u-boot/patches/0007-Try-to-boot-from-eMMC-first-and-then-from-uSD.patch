@@ -1,0 +1,47 @@
+From 52204f30a09a158d367f2904f1968899e44d09e2 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:17:15 +0100
+Subject: [PATCH 07/17] Try to boot from eMMC first and then from uSD
+
+Adapted to distro boot: list mmc1 (eMMC) before mmc0 (uSD) in
+BOOT_TARGET_DEVICES, so boot_targets becomes "mmc1 mmc0 ...". Also
+default mmcdev to 1, bootpart to 1:1 and look up the root partition
+UUID on mmc 1:2.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ include/configs/am335x_evm.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 1aa4a5e4ac2..43ff8e537ce 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -65,9 +65,10 @@
+ # define BOOT_TARGET_DHCP(func)
+ #endif
+ 
++/* Try eMMC (mmc1) first and then the uSD card (mmc0) */
+ #define BOOT_TARGET_DEVICES(func) \
+-	func(MMC, mmc, 0) \
+ 	func(MMC, mmc, 1) \
++	func(MMC, mmc, 0) \
+ 	func(NAND, nand, 0) \
+ 	BOOT_TARGET_USB(func) \
+ 	BOOT_TARGET_PXE(func) \
+@@ -91,9 +92,11 @@
+ #define CFG_EXTRA_ENV_SETTINGS \
+ 	DEFAULT_LINUX_BOOT_ENV \
+ 	SPLASH_ARGS \
++	"mmcdev=1\0" \
++	"bootpart=1:1\0" \
+ 	"bootdir=\0" \
+ 	"fdtfile=undefined\0" \
+-	"finduuid=part uuid mmc 0:2 uuid\0" \
++	"finduuid=part uuid mmc 1:2 uuid\0" \
+ 	"console=ttyO0,115200n8\0" \
+ 	"partitions=" \
+ 		"uuid_disk=${uuid_gpt_disk};" \
+-- 
+2.39.5
+

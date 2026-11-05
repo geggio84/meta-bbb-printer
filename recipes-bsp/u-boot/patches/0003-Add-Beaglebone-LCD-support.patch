@@ -1,158 +1,159 @@
-From ed0161dfe9acbb4f6fa2f41c4e553e77784f19de Mon Sep 17 00:00:00 2001
+From 51492dd40ebfe82e1e05aebd7a4367b836b79d4b Mon Sep 17 00:00:00 2001
 From: Matteo Geromin <geromin.matteo@gmail.com>
-Date: Mon, 2 Nov 2015 23:22:40 +0100
-Subject: [PATCH 03/19] Add Beaglebone LCD support
+Date: Mon, 2 Nov 2026 22:09:00 +0100
+Subject: [PATCH 03/17] Add Beaglebone LCD support
 
+Port of the 2015 BeagleBone LCD patch to the DM video stack:
+
+- Describe the 480x272 Casio COM57H531x panel (tilcdc panel binding)
+  in a new am335x-boneblack-u-boot.dtsi; LCD DISEN (GPIO3_19) is the
+  panel enable GPIO. The lcdc node is tagged bootph-all so the frame
+  buffer is reserved before relocation. The pixel clock is now set up
+  by the clock framework instead of conf_disp_pll().
+- Add the BeagleBone LCD pinmux (16-bit data, DISEN, gpmc_a2) applied
+  on bone_lt boards from U-Boot proper.
+- Enable SPLASH_SCREEN/CMD_BMP and add the load_splash/splashimage/
+  splashfile env; splash_screen_prepare() runs 'load_splash' to load
+  the BMP (replaces the old cfb_console hook).
+- On bone_lt boards, turn on the power LED (GPIO1_16) and start the
+  eCAP0 backlight PWM in board_late_init().
+
+The cfb_console colour swap and the fixed da8xx frame buffer address
+are not ported: the DM video uclass allocates the frame buffer.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
- board/ti/am335x/board.c      | 165 +++++++++++++++++++++++++++++++++++++++++++
- board/ti/am335x/mux.c        |  33 +++++++++
- drivers/video/cfb_console.c  |  22 +++++-
- drivers/video/da8xx-fb.c     |   9 ++-
- include/configs/am335x_evm.h |  29 ++++++++
- 5 files changed, 254 insertions(+), 4 deletions(-)
+ arch/arm/dts/am335x-boneblack-u-boot.dtsi | 63 +++++++++++++++++++
+ board/ti/am335x/board.c                   | 76 +++++++++++++++++++++++
+ board/ti/am335x/mux_lcd.c                 | 29 +++++++++
+ configs/am335x_evm_defconfig              |  6 ++
+ include/configs/am335x_evm.h              | 11 ++++
+ 5 files changed, 185 insertions(+)
+ create mode 100644 arch/arm/dts/am335x-boneblack-u-boot.dtsi
 
+diff --git a/arch/arm/dts/am335x-boneblack-u-boot.dtsi b/arch/arm/dts/am335x-boneblack-u-boot.dtsi
+new file mode 100644
+index 00000000000..e7bbbaa5009
+--- /dev/null
++++ b/arch/arm/dts/am335x-boneblack-u-boot.dtsi
+@@ -0,0 +1,63 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * U-Boot additions for the BeagleBone Black based 3D printer board:
++ * 480x272 parallel RGB LCD panel driven by the AM335x LCD controller.
++ */
++
++#include <dt-bindings/gpio/gpio.h>
++#include "am33xx-u-boot.dtsi"
++
++/ {
++	panel {
++		compatible = "ti,tilcdc,panel";
++		/* LCD DISEN: GPIO3_19 (mcasp0_fsr) */
++		enable-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>;
++
++		panel-info {
++			ac-bias = <255>;
++			ac-bias-intrpt = <0>;
++			dma-burst-sz = <16>;
++			bpp = <32>;
++			fdd = <0x80>;
++			sync-edge = <0>;
++			sync-ctrl = <1>;
++			raster-order = <0>;
++			fifo-th = <0>;
++		};
++
++		display-timings {
++			native-mode = <&timing0>;
++
++			/* Casio COM57H531x */
++			timing0: 480x272 {
++				clock-frequency = <9000000>;
++				hactive = <480>;
++				vactive = <272>;
++				hfront-porch = <9>;
++				hback-porch = <44>;
++				hsync-len = <5>;
++				vfront-porch = <4>;
++				vback-porch = <13>;
++				vsync-len = <10>;
++				/* invert_line_clock / invert_frm_clock */
++				hsync-active = <0>;
++				vsync-active = <0>;
++			};
++		};
++	};
++};
++
++/* The video device must be bound before relocation to reserve its frame buffer */
++&l4_per {
++	bootph-all;
++	segment@300000 {
++		bootph-all;
++		target-module@e000 {
++			bootph-all;
++
++			lcdc: lcdc@0 {
++				bootph-all;
++			};
++		};
++	};
++};
 diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
-index 004f47c..f8adb90 100644
+index 90e4c001bb1..6daee3dbe81 100644
 --- a/board/ti/am335x/board.c
 +++ b/board/ti/am335x/board.c
-@@ -33,9 +33,105 @@
- #include <watchdog.h>
- #include <environment.h>
- #include "board.h"
-+#if defined(CONFIG_VIDEO)
-+#include "../../../drivers/video/da8xx-fb.h"
-+#endif
+@@ -8,6 +8,7 @@
+  */
  
- DECLARE_GLOBAL_DATA_PTR;
- 
-+#if defined(CONFIG_VIDEO)
-+static const struct da8xx_panel lcd_panel = {
-+	/* Casio COM57H531x */
-+	.name = "Casio_COM57H531x",
-+	.width = 480,
-+	.height = 272,
-+	.hfp = 9,
-+	.hbp = 44,
-+	.hsw = 5,
-+	.vfp = 4,
-+	.vbp = 13,
-+	.vsw = 10,
-+	.pxl_clk = 9000000,
-+	.invert_pxl_clk = 0,
-+};
-+
-+static const struct display_panel disp_panel = {
-+	WVGA,
-+	32,
-+	24,
-+	COLOR_ACTIVE,
-+};
-+
-+static const struct lcd_ctrl_config lcd_cfg = {
-+	&disp_panel,
-+	.ac_bias		= 255,
-+	.ac_bias_intrpt		= 0,
-+	.dma_burst_sz		= 16,
-+	.bpp			= 32,
-+	.fdd			= 0x80,
-+	.tft_alt_mode		= 0,
-+	.stn_565_mode		= 0,
-+	.mono_8bit_mode		= 0,
-+	.invert_line_clock	= 1,
-+	.invert_frm_clock	= 1,
-+	.sync_edge		= 0,
-+	.sync_ctrl		= 1,
-+	.raster_order		= 0,
-+};
-+
-+static struct dpll_regs dpll_lcd_regs = {
-+	.cm_clkmode_dpll = CM_WKUP + 0x98,
-+	.cm_idlest_dpll = CM_WKUP + 0x48,
-+	.cm_clksel_dpll = CM_WKUP + 0x54,
-+};
-+
-+#define PLL_GET_M(v) ((v >> 8) & 0x7ff)
-+#define PLL_GET_N(v) (v & 0x7f)
-+
-+static int get_clk(struct dpll_regs *dpll_regs)
-+{
-+	unsigned int val;
-+	unsigned int m, n;
-+	int f = 0;
-+
-+	val = readl(dpll_regs->cm_clksel_dpll);
-+	m = PLL_GET_M(val);
-+	n = PLL_GET_N(val);
-+	f = (m * V_OSCK) / (n+1);
-+
-+	return f;
-+};
-+
-+int clk_get(int clk)
-+{
-+	return get_clk(&dpll_lcd_regs);
-+};
-+
-+static int conf_disp_pll(int m, int n)
-+{
-+	struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
-+	struct cm_dpll *cmdpll = (struct cm_dpll *)CM_DPLL;
-+	struct dpll_params dpll_lcd = {m, n, -1, -1, -1, -1, -1};
-+
-+	u32 *const clk_domains[] = {
-+		&cmper->lcdclkctrl,
-+		0
-+	};
-+	u32 *const clk_modules_explicit_en[] = {
-+		&cmper->lcdclkctrl,
-+		&cmper->lcdcclkstctrl,
-+		&cmper->epwmss0clkctrl,
-+		0
-+	};
-+	do_enable_clocks(clk_domains, clk_modules_explicit_en, 1);
-+	writel(0x0, &cmdpll->clklcdcpixelclk);
-+
-+	do_setup_dpll(&dpll_lcd_regs, &dpll_lcd);
-+
-+	return 0;
-+}
-+#endif
-+
- /* GPIO that controls power to DDR on EVM-SK */
- #define GPIO_DDR_VTT_EN		7
- 
-@@ -83,6 +179,54 @@ static int read_eeprom(struct am335x_baseboard_id *header)
- 	return 0;
+ #include <config.h>
++#include <command.h>
+ #include <dm.h>
+ #include <env.h>
+ #include <errno.h>
+@@ -18,6 +19,7 @@
+ #include <net.h>
+ #include <spl.h>
+ #include <serial.h>
++#include <splash.h>
+ #include <rtc.h>
+ #include <asm/arch/cpu.h>
+ #include <asm/arch/hardware.h>
+@@ -762,6 +764,70 @@ done:
  }
+ #endif
  
++#if !defined(CONFIG_XPL_BUILD)
 +static int set_gpio(int gpio, int state)
 +{
-+	gpio_request(gpio, "temp");
++	int ret;
++
++	ret = gpio_request(gpio, "temp");
++	if (ret)
++		return ret;
 +	gpio_direction_output(gpio, state);
 +	gpio_set_value(gpio, state);
 +	gpio_free(gpio);
 +	return 0;
 +}
++#endif
 +
-+#if defined(CONFIG_VIDEO)
-+static int enable_backlight(void)
-+{
-+	set_gpio(50, 1); // GPIO1_18
-+	return 0;
-+}
-+
-+static int enable_lcd(void)
-+{
-+	set_gpio(115, 1); // GPIO3_19
-+	return 0;
-+}
++#if IS_ENABLED(CONFIG_AM335X_LCD) && !defined(CONFIG_XPL_BUILD)
++/* LCD backlight PWM on eCAP0 */
++#define PWM_TICKS	0x1388
++#define PWM_DUTY	0x1000
 +
 +static int enable_pwm(void)
 +{
++	struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
 +	struct pwmss_regs *pwmss = (struct pwmss_regs *)PWMSS0_BASE;
 +	struct pwmss_ecap_regs *ecap;
 +	int ticks = PWM_TICKS;
 +	int duty = PWM_DUTY;
++
++	/* Enable PWMSS0 module clock */
++	writel(0x2, &cmper->epwmss0clkctrl);
 +
 +	ecap = (struct pwmss_ecap_regs *)AM33XX_ECAP0_BASE;
 +	/* enable clock */
@@ -171,57 +172,52 @@ index 004f47c..f8adb90 100644
 +	setbits_le16(&ecap->ecctl2, ECTRL2_CTRSTP_FREERUN);
 +	return 0;
 +}
++
++/*
++ * Load the splash BMP to ${splashimage} by running the 'load_splash'
++ * environment script before the splash screen is drawn.
++ */
++int splash_screen_prepare(void)
++{
++	if (!env_get("load_splash")) {
++		printf("Set 'load_splash' command to load BMP file\n");
++		return -ENOENT;
++	}
++
++	return run_command("run load_splash", 0);
++}
 +#endif
 +
- #ifndef CONFIG_SKIP_LOWLEVEL_INIT
- static const struct ddr_data ddr2_data = {
- 	.datardsratio0 = MT47H128M16RT25E_RD_DQS,
-@@ -541,6 +685,8 @@ void sdram_init(void)
- }
- #endif
+ static bool __maybe_unused prueth_is_mii = true;
  
-+unsigned long fb_mem_baseaddr;
-+
  /*
-  * Basic board specific setup.  Pinmux has been handled already.
-  */
-@@ -577,6 +723,25 @@ int board_late_init(void)
- 	setenv("board_rev", safe_string);
- #endif
+@@ -968,6 +1034,16 @@ int board_late_init(void)
+ 			env_set("serial#", board_serial);
+ 	}
  
-+#if defined(CONFIG_VIDEO)
-+	if(board_is_bone(&header))
-+		VIDEO_DA8XX_FB_MEMADDR = (((256*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
-+	else
-+		VIDEO_DA8XX_FB_MEMADDR = (((512*1024*1024)-VIDEO_DA8XX_FB_MEMSIZE)+0x80000000);
-+	conf_disp_pll(24, 1);
-+	da8xx_video_init(&lcd_panel, &lcd_cfg, 32);
-+	enable_lcd();
++#if !defined(CONFIG_XPL_BUILD)
++	if (board_is_bone_lt()) {
++		/* Enable Power-ON led */
++		set_gpio(48, 1); /* gpio1_16 */
++#if IS_ENABLED(CONFIG_AM335X_LCD)
++		enable_pwm();
++#endif
++	}
 +#endif
 +
-+	// Enable Power-ON led
-+	set_gpio(48, 1); // gpio1_16
-+
-+#if defined(CONFIG_VIDEO)
-+	setenv("stdout", "serial");
-+	enable_pwm();
-+	//enable_backlight();
-+#endif
-+
- 	return 0;
- }
- #endif
-diff --git a/board/ti/am335x/mux.c b/board/ti/am335x/mux.c
-index 680f656..56efe02 100644
---- a/board/ti/am335x/mux.c
-+++ b/board/ti/am335x/mux.c
-@@ -236,6 +236,35 @@ static struct module_pin_mux bone_norcape_pin_mux[] = {
+ 	/* Just probe the potentially supported cdce913 device */
+ 	uclass_get_device_by_name(UCLASS_CLK, "cdce913@65", &dev);
+ 
+diff --git a/board/ti/am335x/mux_lcd.c b/board/ti/am335x/mux_lcd.c
+index ba3c52f5e88..ac6eaa15cad 100644
+--- a/board/ti/am335x/mux_lcd.c
++++ b/board/ti/am335x/mux_lcd.c
+@@ -48,8 +48,37 @@ static struct module_pin_mux lcd_pin_mux[] = {
+ 	{-1},
  };
- #endif
  
-+#if defined(CONFIG_VIDEO)
-+/* LCD */
-+static struct module_pin_mux LCD_pin_mux[] = {
++/* BeagleBone Black 3D printer: 16-bit RGB565 LCD */
++static struct module_pin_mux bbb_lcd_pin_mux[] = {
 +	{OFFSET(lcd_data0), MODE(0) },     /* lcd_data0 */
 +	{OFFSET(lcd_data1), MODE(0) },     /* lcd_data1 */
 +	{OFFSET(lcd_data2), MODE(0) },     /* lcd_data2 */
@@ -246,125 +242,48 @@ index 680f656..56efe02 100644
 +	{OFFSET(gpmc_a2), MODE(7) | PULLDOWN_EN | RXACTIVE},
 +	{-1},
 +};
-+#endif
 +
- #if defined(CONFIG_NOR_BOOT)
- void enable_norboot_pin_mux(void)
+ void enable_board_lcd_pin_mux(void)
  {
-@@ -370,4 +399,8 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
- 		puts("Unknown board, cannot configure pinmux.");
- 		hang();
- 	}
-+
-+#if defined(CONFIG_VIDEO)
-+	configure_module_pin_mux(LCD_pin_mux);
-+#endif
+ 	if (board_is_gp_evm())
+ 		configure_module_pin_mux(lcd_pin_mux);
++	else if (board_is_bone_lt())
++		configure_module_pin_mux(bbb_lcd_pin_mux);
  }
-diff --git a/drivers/video/cfb_console.c b/drivers/video/cfb_console.c
-index 7f2ddc1..e409ba7 100644
---- a/drivers/video/cfb_console.c
-+++ b/drivers/video/cfb_console.c
-@@ -87,6 +87,7 @@
-  */
- 
- #include <common.h>
-+#include <command.h>
- #include <fdtdec.h>
- #include <version.h>
- #include <malloc.h>
-@@ -1206,9 +1207,9 @@ __weak void video_set_lut(unsigned int index, unsigned char r,
- 
- #define FILL_32BIT_X888RGB(r,g,b) {			\
- 	*(unsigned long *)fb =				\
--		SWAP32((unsigned long)(((r<<16) |	\
-+		SWAP32((unsigned long)(((r) |	\
- 					(g<<8)  |	\
--					 b)));		\
-+					(b<<16))));		\
- 	fb += 4;					\
- }
- 
-@@ -1991,6 +1992,11 @@ static void *video_logo(void)
- 	__maybe_unused int y_off = 0;
- 	__maybe_unused ulong addr;
- 	__maybe_unused char *s;
-+	__maybe_unused char *c;
-+	int argc;
-+	char * argv[5];
-+	ulong cycles = 0;
-+	int repeatable;
- 
- 	splash_get_pos(&video_logo_xpos, &video_logo_ypos);
- 
-@@ -2000,6 +2006,18 @@ static void *video_logo(void)
- 		splash_screen_prepare();
- 		addr = simple_strtoul(s, NULL, 16);
- 
-+		c = getenv("load_splash");
-+		if (c != NULL) {
-+			argc = 2;
-+			argv[0] = "run";
-+			argv[1] = "load_splash";
-+			cmd_process(0, argc, argv, &repeatable, &cycles);
-+		}
-+		else {
-+			printf("Set 'load_splash' command to load BMP file");
-+			return NULL;
-+		}
-+
- 		if (video_display_bitmap(addr,
- 					video_logo_xpos,
- 					video_logo_ypos) == 0) {
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 3a5f325..8957c23 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -949,10 +949,15 @@ void *video_hw_init(void)
- 			da8xx_lcd_cfg->bpp;
- 	par->vram_size = par->vram_size * LCD_NUM_BUFFERS / 8;
- 
-+#if defined(VIDEO_DA8XX_FB_MEMSIZE) && defined(VIDEO_DA8XX_FB_MEMADDR)
-+	par->vram_virt = map_physmem(VIDEO_DA8XX_FB_MEMADDR,VIDEO_DA8XX_FB_MEMSIZE,0);
-+	par->vram_phys = VIDEO_DA8XX_FB_MEMADDR;
-+#else
- 	par->vram_virt = malloc(par->vram_size);
--
- 	par->vram_phys = (dma_addr_t) par->vram_virt;
--	debug("Requesting 0x%x bytes for framebuffer at 0x%x\n",
-+#endif
-+
-+	printf("Requesting 0x%x bytes for framebuffer at 0x%x\n",
- 		(unsigned int)par->vram_size,
- 		(unsigned int)par->vram_virt);
- 	if (!par->vram_virt) {
+diff --git a/configs/am335x_evm_defconfig b/configs/am335x_evm_defconfig
+index bcfb2ab2223..566bded6d87 100644
+--- a/configs/am335x_evm_defconfig
++++ b/configs/am335x_evm_defconfig
+@@ -46,6 +46,7 @@ CONFIG_SYS_I2C_EEPROM_ADDR_LEN=2
+ CONFIG_CMD_NAND=y
+ # CONFIG_CMD_SETEXPR is not set
+ CONFIG_BOOTP_DNS2=y
++CONFIG_CMD_BMP=y
+ CONFIG_CMD_MTDPARTS=y
+ CONFIG_MTDIDS_DEFAULT="nand0=nand.0"
+ CONFIG_MTDPARTS_DEFAULT="mtdparts=nand.0:128k(NAND.SPL),128k(NAND.SPL.backup1),128k(NAND.SPL.backup2),128k(NAND.SPL.backup3),256k(NAND.u-boot-spl-os),1m(NAND.u-boot),128k(NAND.u-boot-env),128k(NAND.u-boot-env.backup1),8m(NAND.kernel),-(NAND.file-system)"
+@@ -124,6 +125,11 @@ CONFIG_USB_ETHER=y
+ CONFIG_SPL_USB_ETHER=y
+ CONFIG_VIDEO=y
+ CONFIG_AM335X_LCD=y
++CONFIG_SPLASH_SCREEN=y
++CONFIG_SPLASH_SCREEN_ALIGN=y
++CONFIG_BMP_16BPP=y
++CONFIG_BMP_24BPP=y
++CONFIG_BMP_32BPP=y
+ CONFIG_WDT=y
+ # CONFIG_SPL_WDT is not set
+ CONFIG_DYNAMIC_CRC_TABLE=y
 diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
-index b497465..7f4fecc 100644
+index d2164b41d6d..deffb08ab62 100644
 --- a/include/configs/am335x_evm.h
 +++ b/include/configs/am335x_evm.h
-@@ -65,12 +65,41 @@
- #define NANDARGS ""
- #endif
+@@ -75,11 +75,22 @@
  
-+#ifndef __ASSEMBLY__
-+extern unsigned long fb_mem_baseaddr;
-+#endif
-+
-+/* SPLASH IMAGE */
-+#if defined(CONFIG_VIDEO_DA8XX)
-+#define CONFIG_VIDEO
-+#define CONFIG_VGA_AS_SINGLE_DEVICE
-+#define CONFIG_CMD_BMP
-+#define VIDEO_DA8XX_FB_MEMSIZE	(4*1024*1024)	/* 4 MB */
-+#define VIDEO_DA8XX_FB_MEMADDR	fb_mem_baseaddr
-+#define CONFIG_SPLASH_SCREEN
-+#define CONFIG_SPLASH_SCREEN_ALIGN
-+#define CONFIG_VIDEO_LOGO
-+#define CONFIG_SYS_CONSOLE_INFO_QUIET
-+#define CONFIG_VIDEO_BMP_RLE8
-+#define CONFIG_VIDEO_BMP_LOGO
-+#define PWM_TICKS	0x1388
-+#define PWM_DUTY	0x1000
-+#define DA8XX_LCD_CNTL_BASE LCD_CNTL_BASE
+ #include <config_distro_bootcmd.h>
+ 
++/* Splash image, loaded by splash_screen_prepare() via 'load_splash' */
++#ifdef CONFIG_SPLASH_SCREEN
 +#define SPLASH_ARGS \
 +	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${splashfile}\0" \
 +	"splashimage=0x8F000000\0" \
@@ -373,16 +292,15 @@ index b497465..7f4fecc 100644
 +#define SPLASH_ARGS ""
 +#endif
 +
- #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+ #ifndef CONFIG_XPL_BUILD
+ #include <env/ti/dfu.h>
  
- #ifndef CONFIG_SPL_BUILD
- #define CONFIG_EXTRA_ENV_SETTINGS \
+ #define CFG_EXTRA_ENV_SETTINGS \
  	DEFAULT_LINUX_BOOT_ENV \
- 	DEFAULT_MMC_TI_ARGS \
 +	SPLASH_ARGS \
- 	"boot_fdt=try\0" \
- 	"bootpart=0:2\0" \
- 	"bootdir=/boot\0" \
+ 	"fdtfile=undefined\0" \
+ 	"finduuid=part uuid mmc 0:2 uuid\0" \
+ 	"console=ttyO0,115200n8\0" \
 -- 
-1.9.1
+2.39.5
 

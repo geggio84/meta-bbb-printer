@@ -1,0 +1,70 @@
+From 0d7fda3a77c110e85f7acace24a7c1d28b11b1e6 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:26:03 +0100
+Subject: [PATCH 12/17] Add support for recovery boot
+
+If the front panel button (GPIO0_30) is held at boot on BeagleBone LT
+boards, boot the ramdisk ('run ramboot') and show
+recovery_splash.bmp instead of the normal splash image.
+
+The splash part moves from cfb_console's video_logo() into the board's
+splash_screen_prepare().
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ board/ti/am335x/board.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index db048153c43..d27c079c81f 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -804,6 +804,22 @@ static int set_gpio(int gpio, int state)
+ 	gpio_free(gpio);
+ 	return 0;
+ }
++
++/* Front panel button (ENC_SW, GPIO0_30): pressed at boot = recovery */
++#define GPIO_RECOVERY	30
++
++static bool recovery_button_pressed(void)
++{
++	int val;
++
++	if (gpio_request(GPIO_RECOVERY, "recovery"))
++		return false;
++	gpio_direction_input(GPIO_RECOVERY);
++	val = gpio_get_value(GPIO_RECOVERY);
++	gpio_free(GPIO_RECOVERY);
++
++	return val == 0;
++}
+ #endif
+ 
+ #if IS_ENABLED(CONFIG_AM335X_LCD) && !defined(CONFIG_XPL_BUILD)
+@@ -878,6 +894,10 @@ static void set_fb_env(void)
+  */
+ int splash_screen_prepare(void)
+ {
++	/* Check if front button is pressed */
++	if (board_is_bone_lt() && recovery_button_pressed())
++		env_set("splashfile", "recovery_splash.bmp");
++
+ 	if (!env_get("load_splash")) {
+ 		printf("Set 'load_splash' command to load BMP file\n");
+ 		return -ENOENT;
+@@ -1102,8 +1122,9 @@ int board_late_init(void)
+ 		enable_backlight();
+ #endif
+ 
+-		/* Check if we are booting from uSD (SYSBOOT pins) */
+-		if (readl(&cstat->statusreg) == 0x00400338)
++		/* Check if we are booting from uSD or recovery button pressed */
++		if (readl(&cstat->statusreg) == 0x00400338 ||
++		    recovery_button_pressed())
+ 			env_set("bootcmd", "run ramboot");
+ 	}
+ #endif
+-- 
+2.39.5
+

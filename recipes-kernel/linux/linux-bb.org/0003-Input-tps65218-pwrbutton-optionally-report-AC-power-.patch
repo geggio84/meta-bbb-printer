@@ -1,0 +1,143 @@
+From 0e5bc129af33889b9a0d36c3bcac7be1112ddc2c Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Wed, 4 Nov 2026 03:31:03 +0100
+Subject: [PATCH 3/5] Input: tps65218-pwrbutton: optionally report AC power
+ loss as KEY_POWER
+
+On battery backed tps65217 systems it is useful to shut down cleanly
+when the mains (AC) supply goes away. Add an optional
+"ti,ac-loss-power-key" DT property: when set, the AC status interrupt
+is requested too and KEY_POWER is reported as pressed while AC is
+missing and released when it comes back.
+
+The tps65217 MFD core now passes the AC interrupt to the power button
+cell as an "AC" named resource.
+
+This ports the power button/AC handling that the bbb-printer board used
+to carry in the tps65217 core driver.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../bindings/input/tps65218-pwrbutton.txt     |  7 +++
+ drivers/input/misc/tps65218-pwrbutton.c       | 54 +++++++++++++++++++
+ drivers/mfd/tps65217.c                        |  1 +
+ 3 files changed, 62 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+index 8682ab6d4a50..fe753ac8797a 100644
+--- a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
++++ b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+@@ -13,6 +13,13 @@ Required properties:
+    - <2>: For controllers compatible with tps65217
+    - <3 IRQ_TYPE_EDGE_BOTH>: For controllers compatible with tps65218
+ 
++Optional properties:
++- ti,ac-loss-power-key: (tps65217 only) also report KEY_POWER as pressed
++  while the AC adapter input is not powered, and as released when it comes
++  back. Useful to trigger a clean shutdown on mains loss on battery backed
++  systems. The tps65217 charger must not be enabled at the same time, as it
++  uses the same AC interrupt.
++
+ Examples:
+ 
+ &tps {
+diff --git a/drivers/input/misc/tps65218-pwrbutton.c b/drivers/input/misc/tps65218-pwrbutton.c
+index fc450fce0932..642a1e140599 100644
+--- a/drivers/input/misc/tps65218-pwrbutton.c
++++ b/drivers/input/misc/tps65218-pwrbutton.c
+@@ -22,12 +22,14 @@
+ struct tps6521x_data {
+ 	unsigned int reg_status;
+ 	unsigned int pb_mask;
++	unsigned int ac_mask;	/* 0 if AC loss reporting is not supported */
+ 	const char *name;
+ };
+ 
+ static const struct tps6521x_data tps65217_data = {
+ 	.reg_status = TPS65217_REG_STATUS,
+ 	.pb_mask = TPS65217_STATUS_PB,
++	.ac_mask = TPS65217_STATUS_ACPWR,
+ 	.name = "tps65217_pwrbutton",
+ };
+ 
+@@ -78,6 +80,56 @@ static irqreturn_t tps6521x_pb_irq(int irq, void *_pwr)
+ 	return IRQ_HANDLED;
+ }
+ 
++/*
++ * AC power status change: report KEY_POWER as pressed while the AC adapter
++ * is missing, so that userspace can shut the system down cleanly when the
++ * mains supply goes away (e.g. when running from a backup battery/UPS).
++ */
++static irqreturn_t tps6521x_ac_irq(int irq, void *_pwr)
++{
++	struct tps6521x_pwrbutton *pwr = _pwr;
++	const struct tps6521x_data *tps_data = pwr->data;
++	unsigned int reg;
++	int error;
++
++	error = regmap_read(pwr->regmap, tps_data->reg_status, &reg);
++	if (error) {
++		dev_err(pwr->dev, "can't read register: %d\n", error);
++		return IRQ_HANDLED;
++	}
++
++	dev_dbg(pwr->dev, "AC power %s\n",
++		(reg & tps_data->ac_mask) ? "present" : "lost");
++
++	input_report_key(pwr->idev, KEY_POWER, !(reg & tps_data->ac_mask));
++	input_sync(pwr->idev);
++
++	return IRQ_HANDLED;
++}
++
++static void tps6521x_pb_setup_ac_loss(struct platform_device *pdev,
++				      struct tps6521x_pwrbutton *pwr)
++{
++	struct device *dev = &pdev->dev;
++	int error;
++	int irq;
++
++	if (!pwr->data->ac_mask ||
++	    !device_property_read_bool(dev, "ti,ac-loss-power-key"))
++		return;
++
++	irq = platform_get_irq_byname_optional(pdev, "AC");
++	if (irq < 0) {
++		dev_warn(dev, "AC interrupt not available, AC loss not reported\n");
++		return;
++	}
++
++	error = devm_request_threaded_irq(dev, irq, NULL, tps6521x_ac_irq,
++					  IRQF_ONESHOT, "tps65217_ac", pwr);
++	if (error)
++		dev_warn(dev, "failed to request AC IRQ #%d: %d\n", irq, error);
++}
++
+ static int tps6521x_pb_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -135,6 +187,8 @@ static int tps6521x_pb_probe(struct platform_device *pdev)
+ 		return error;
+ 	}
+ 
++	tps6521x_pb_setup_ac_loss(pdev, pwr);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 029ecc32f078..8c54ce02c477 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -31,6 +31,7 @@ static const struct resource charger_resources[] = {
+ 
+ static const struct resource pb_resources[] = {
+ 	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
++	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_AC, "AC"),
+ };
+ 
+ static void tps65217_irq_lock(struct irq_data *data)
+-- 
+2.39.5
+

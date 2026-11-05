@@ -1,0 +1,125 @@
+From 1133f9a09993ea03df6ca799d9d729bc115e1d8f Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:22:20 +0100
+Subject: [PATCH 10/17] Fix Video init on beaglebone
+
+- Export the frame buffer location for the kernel: 'fb_base' (start of
+  the pixel data scanned out by tilcdc) and 'fb_dim' (size in MiB), and
+  set 'optargs' to mem=<N>M so the kernel stays below the frame
+  buffer. With DM video the buffer is allocated by the video uclass,
+  so the values are read from the probed video device instead of the
+  fixed VIDEO_DA8XX_FB_MEMADDR.
+- Add the 'fdt_setup' script that passes fb_base/fb_dim to the kernel
+  device tree (/lcdc fb-baseaddr, fb-size-MB).
+- Load the splash file from ${bootdir}.
+- Drive the backlight through GPIO1_18 instead of the eCAP0 PWM.
+
+The board_init() EEPROM read is not needed any more: board detection
+already happens in SPL.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ board/ti/am335x/board.c      | 39 ++++++++++++++++++++++++++++++++++--
+ include/configs/am335x_evm.h |  7 +++++--
+ 2 files changed, 42 insertions(+), 4 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index f4cd64ca1fb..ca47dae736f 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -20,6 +20,7 @@
+ #include <spl.h>
+ #include <serial.h>
+ #include <splash.h>
++#include <video.h>
+ #include <rtc.h>
+ #include <asm/arch/cpu.h>
+ #include <asm/arch/hardware.h>
+@@ -43,6 +44,7 @@
+ #include <linux/bitops.h>
+ #include <linux/compiler.h>
+ #include <linux/delay.h>
++#include <linux/sizes.h>
+ #include <power/pmic.h>
+ #include <power/tps65217.h>
+ #include <power/tps65910.h>
+@@ -809,7 +811,13 @@ static int set_gpio(int gpio, int state)
+ #define PWM_TICKS	0x1388
+ #define PWM_DUTY	0x1000
+ 
+-static int enable_pwm(void)
++static int enable_backlight(void)
++{
++	set_gpio(50, 1); /* GPIO1_18 */
++	return 0;
++}
++
++static __maybe_unused int enable_pwm(void)
+ {
+ 	struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
+ 	struct pwmss_regs *pwmss = (struct pwmss_regs *)PWMSS0_BASE;
+@@ -838,6 +846,32 @@ static int enable_pwm(void)
+ 	return 0;
+ }
+ 
++/*
++ * Export the frame buffer location to the environment so that the
++ * kernel can keep using it (see 'fdt_setup'), and limit the kernel
++ * memory so it does not overwrite it.
++ */
++static void set_fb_env(void)
++{
++	struct video_uc_plat *plat;
++	struct udevice *dev;
++	char buf[32];
++
++	if (uclass_first_device_err(UCLASS_VIDEO, &dev))
++		return;
++
++	plat = dev_get_uclass_plat(dev);
++
++	snprintf(buf, sizeof(buf), "mem=%luM",
++		 (gd->video_bottom - CFG_SYS_SDRAM_BASE) / SZ_1M);
++	env_set("optargs", buf);
++	snprintf(buf, sizeof(buf), "0x%lX", plat->base);
++	env_set("fb_base", buf);
++	snprintf(buf, sizeof(buf), "0x%.8lX",
++		 DIV_ROUND_UP(gd->video_top - plat->base, SZ_1M));
++	env_set("fb_dim", buf);
++}
++
+ /*
+  * Load the splash BMP to ${splashimage} by running the 'load_splash'
+  * environment script before the splash screen is drawn.
+@@ -1064,7 +1098,8 @@ int board_late_init(void)
+ 		/* Enable Power-ON led */
+ 		set_gpio(48, 1); /* gpio1_16 */
+ #if IS_ENABLED(CONFIG_AM335X_LCD)
+-		enable_pwm();
++		set_fb_env();
++		enable_backlight();
+ #endif
+ 	}
+ #endif
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 43ff8e537ce..41e93cc8481 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -79,9 +79,12 @@
+ /* Splash image, loaded by splash_screen_prepare() via 'load_splash' */
+ #ifdef CONFIG_SPLASH_SCREEN
+ #define SPLASH_ARGS \
+-	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${splashfile}\0" \
++	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${bootdir}/${splashfile}\0" \
+ 	"splashimage=0x8F000000\0" \
+-	"splashfile=splash.bmp\0"
++	"splashfile=splash.bmp\0" \
++	"fdt_setup=fdt addr ${fdtaddr};" \
++		"fdt set /lcdc fb-baseaddr <${fb_base}>;" \
++		"fdt set /lcdc fb-size-MB <${fb_dim}>\0"
+ #else
+ #define SPLASH_ARGS ""
+ #endif
+-- 
+2.39.5
+

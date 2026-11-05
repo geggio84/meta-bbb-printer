@@ -1,7 +1,7 @@
 DESCRIPTON = "Add PRU cores Firmwares"
 
-LICENSE = "GPL-2.0"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
+LICENSE = "GPL-3.0-or-later"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc354acaac30ed4d5eefea7245"
 
 S = "${WORKDIR}"
 
@@ -14,15 +14,15 @@ S = "${WORKDIR}"
 
 do_install() {
 
-	install -d ${D}/lib/firmware
+	install -d ${D}${nonarch_base_libdir}/firmware
 
-	install -m 644 PRU_Halt.out ${D}/lib/firmware
-	install -m 644 PRU_stepper.out ${D}/lib/firmware
+	install -m 644 PRU_Halt.out ${D}${nonarch_base_libdir}/firmware
+	install -m 644 PRU_stepper.out ${D}${nonarch_base_libdir}/firmware
 
-	ln -sf PRU_stepper.out ${D}/lib/firmware/am335x-pru0-fw
-	ln -sf PRU_Halt.out ${D}/lib/firmware/am335x-pru1-fw
+	ln -sf PRU_stepper.out ${D}${nonarch_base_libdir}/firmware/am335x-pru0-fw
+	ln -sf PRU_Halt.out ${D}${nonarch_base_libdir}/firmware/am335x-pru1-fw
 }
 
-FILES_${PN} = "/lib/firmware/*"
+FILES:${PN} += "${nonarch_base_libdir}/firmware/*"
 
-INSANE_SKIP_${PN} = "arch"
+INSANE_SKIP:${PN} = "arch"

@@ -1,0 +1,92 @@
+From 9abacafec9a1ee4af34e8db5050cdd24d77cb4a2 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 2 Nov 2026 22:25:25 +0100
+Subject: [PATCH 11/17] Update environment for ramdisk boot
+
+- bootdir=/boot, bootfile=zImage, fdt_high/initrd_high=0xffffffff and
+  initrd_addr/initrd_file variables.
+- Use ttyS0 as kernel console (also in init_console for non-ICE boards).
+- Add loadimage/loadfdt/loadinitrd helpers (no longer provided by the
+  distro-boot based env) and load ramdisk-bbb.gz from ${bootdir}.
+- Make 'ramboot' self contained: find the DT, then load kernel, DT and
+  ramdisk from the uSD card (mmc 0:1) before booting.
+- On BeagleBone LT boards booting from uSD (CONTROL_STATUS ==
+  0x00400338) set bootcmd to 'run ramboot'.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ board/ti/am335x/board.c      |  4 ++++
+ include/configs/am335x_evm.h | 20 ++++++++++++++++----
+ 2 files changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+index ca47dae736f..db048153c43 100644
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -1101,6 +1101,10 @@ int board_late_init(void)
+ 		set_fb_env();
+ 		enable_backlight();
+ #endif
++
++		/* Check if we are booting from uSD (SYSBOOT pins) */
++		if (readl(&cstat->statusreg) == 0x00400338)
++			env_set("bootcmd", "run ramboot");
+ 	}
+ #endif
+ 
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 41e93cc8481..7ac5018f4e6 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -97,10 +97,15 @@
+ 	SPLASH_ARGS \
+ 	"mmcdev=1\0" \
+ 	"bootpart=1:1\0" \
+-	"bootdir=\0" \
++	"bootdir=/boot\0" \
++	"bootfile=zImage\0" \
+ 	"fdtfile=undefined\0" \
+ 	"finduuid=part uuid mmc 1:2 uuid\0" \
+-	"console=ttyO0,115200n8\0" \
++	"fdt_high=0xffffffff\0" \
++	"initrd_addr=0x88080000\0" \
++	"initrd_high=0xffffffff\0" \
++	"initrd_file=initrd.img\0" \
++	"console=ttyS0,115200n8\0" \
+ 	"partitions=" \
+ 		"uuid_disk=${uuid_gpt_disk};" \
+ 		"name=bootloader,start=384K,size=1792K," \
+@@ -122,13 +127,20 @@
+ 		"${optargs} " \
+ 		"root=${ramroot} " \
+ 		"rootfstype=${ramrootfstype}\0" \
+-	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
++	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ${bootdir}/ramdisk-bbb.gz\0" \
++	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
++	"loadinitrd=load mmc ${bootpart} ${initrd_addr} ${bootdir}/${initrd_file}; setenv initrd_size ${filesize}\0" \
++	"loadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
+ 	"spiboot=echo Booting from spi ...; " \
+ 		"run spiargs; " \
+ 		"sf probe ${spibusno}:0; " \
+ 		"sf read ${loadaddr} ${spisrcaddr} ${spiimgsize}; " \
+ 		"bootz ${loadaddr}\0" \
+ 	"ramboot=echo Booting from ramdisk ...; " \
++		"run findfdt; " \
++		"setenv mmcdev 0; " \
++		"setenv bootpart 0:1; " \
++		"run loadimage; run loadfdt; run loadramdisk; " \
+ 		"run ramargs; " \
+ 		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
+ 	"findfdt="\
+@@ -168,7 +180,7 @@
+ 		"if test $board_name = A335_ICE; then "\
+ 			"setenv console ttyO3,115200n8;" \
+ 		"else " \
+-			"setenv console ttyO0,115200n8;" \
++			"setenv console ttyS0,115200n8;" \
+ 		"fi;\0" \
+ 	NANDARGS \
+ 	NETARGS \
+-- 
+2.39.5
+

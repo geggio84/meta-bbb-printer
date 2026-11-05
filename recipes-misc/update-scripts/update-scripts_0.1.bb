@@ -1,13 +1,13 @@
 DESCRIPTON = "Startup scripts"
 
-LICENSE = "GPL-2.0"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
+LICENSE = "GPL-3.0-or-later"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc354acaac30ed4d5eefea7245"
 
 PR = "0"
 
 S = "${WORKDIR}"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/linux-ti-staging:"
+FILESEXTRAPATHS:prepend = "${THISDIR}/linux-ti-staging:"
 
 SRC_URI = " \
 	file://update_kernel_emmc.sh \
@@ -44,4 +44,5 @@ do_install() {
 	ln -sf ../init.d/pwrbtn.sh  ${D}${sysconfdir}/rcS.d/S90pwrbtn
 }
 
-FILES_${PN} = "/home/root/* ${sysconfdir}/*"
+FILES:${PN} = "/home/root/* \
+              ${sysconfdir}/*"
