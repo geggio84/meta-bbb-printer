@@ -1,0 +1,16 @@
+[Unit]
+Description=BBB printer application stack
+# Printer services (Marlin, GUI, ...) hook in with:
+#   [Install]
+#   RequiredBy=bbb-printer.target
+# A service that fails to start then fails this target, the boot is not
+# marked successful and, after 3 such boots, U-Boot boots the uSD
+# recovery ramdisk.
+#
+# DefaultDependencies=no avoids the implicit ordering cycle with
+# multi-user.target, which pulls this target in.
+DefaultDependencies=no
+After=multi-user.target
+
+[Install]
+WantedBy=multi-user.target

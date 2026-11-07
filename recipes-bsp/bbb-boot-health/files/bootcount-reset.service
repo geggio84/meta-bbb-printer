@@ -1,0 +1,17 @@
+[Unit]
+Description=Mark boot as successful (reset U-Boot boot counter)
+# Runs only once bbb-printer.target is reached, i.e. all printer
+# services RequiredBy that target started successfully.
+DefaultDependencies=no
+Requires=bbb-printer.target
+After=bbb-printer.target
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/bootcount reset
+
+[Install]
+WantedBy=bbb-printer.target

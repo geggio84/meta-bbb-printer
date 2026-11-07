@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Read or reset the U-Boot boot counter (CONFIG_BOOTCOUNT_AM33XX).
+#
+# U-Boot stores the counter in AM335x RTC scratch register 2 as
+# (magic & 0xffff0000) | count, written big-endian
+# (CONFIG_SYS_BOOTCOUNT_BE). Linux exposes the RTC scratch registers
+# through the omap_rtc nvmem device; scratch2 is at byte offset 8.
+#
+# After more than "bootlimit" (3) consecutive boots without a reset,
+# U-Boot runs altbootcmd and boots the recovery ramdisk from uSD.
+
+NVMEM=/sys/bus/nvmem/devices/omap_rtc_scratch0/nvmem
+MAGIC=b001
+
+usage() {
+	echo "Usage: $0 {get|reset}" >&2
+	exit 2
+}
+
+[ -w "$NVMEM" ] || [ -r "$NVMEM" ] || {
+	echo "bootcount: $NVMEM not found (omap_rtc nvmem missing?)" >&2
+	exit 1
+}
+
+case "$1" in
+get)
+	# The 4 bytes, read in order, are the big-endian 32-bit value
+	bytes=$(dd if="$NVMEM" bs=4 skip=2 count=1 2>/dev/null | od -An -tx1 | tr -d ' \n')
+	if [ "${bytes%????}" = "$MAGIC" ]; then
+		echo $((0x${bytes#????}))
+	else
+		echo 0
+	fi
+	;;
+reset)
+	# Zero the register: wrong magic means "count 0" for U-Boot
+	printf '\000\000\000\000' | dd of="$NVMEM" bs=4 seek=2 count=1 conv=notrunc 2>/dev/null || {
+		echo "bootcount: failed to reset" >&2
+		exit 1
+	}
+	;;
+*)
+	usage
+	;;
+esac
