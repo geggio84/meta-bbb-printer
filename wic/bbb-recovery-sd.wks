@@ -1,0 +1,8 @@
+# short-description: bbb-printer recovery uSD card
+# long-description: Boot partition with MLO, u-boot.img and, in /boot, the
+# kernel, device tree and recovery ramdisk loaded by U-Boot "ramboot".
+# Empty FAT "UPDATE" partition exported as a USB drive on the OTG port by
+# the recovery ramdisk, holding the files used by the update scripts.
+
+part --source bootimg-partition --fstype=vfat --label boot --active --align 1024 --fixed-size 64M
+part --fstype=vfat --label UPDATE --align 1024 --fixed-size 1024M

@@ -1,0 +1,19 @@
+
+bbb-printer recovery
+--------------------
+1. Connect the USB OTG port (mini-USB) to the PC: the uSD "UPDATE"
+   partition appears as a USB drive. Copy the update files onto it,
+   then safely remove/eject the drive on the PC.
+2. Run an update script here (serial console) or over USB networking:
+   ssh root@192.168.7.2
+     update_emmc_image.sh    full eMMC: bbb-printer-image-*.wic.xz (or .wic)
+     update_rootfs.sh        eMMC rootfs: bbb-printer-image-*.rootfs.tar.gz
+     update_kernel_emmc.sh   eMMC kernel: zImage, am335x-bbb-printer.dtb
+                             (+ modules-bbb-printer.tgz if present)
+     update_u-boot_emmc.sh   eMMC bootloader: MLO, u-boot.img
+     update_splash_emmc.sh   eMMC splash: splash.bmp, recovery_splash.bmp
+     update_kernel_sd.sh, update_u-boot_sd.sh, update_splash_sd.sh,
+     update_ramdisk.sh       same for this uSD recovery card
+3. Reboot: "reboot -f". The eMMC update scripts reset the boot counter,
+   so the board boots the eMMC system again.
+

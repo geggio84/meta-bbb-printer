@@ -1,0 +1,96 @@
+#!/bin/sh
+#
+# USB OTG composite gadget for the bbb-printer recovery:
+#  - mass storage: the uSD "UPDATE" partition, seen as a USB drive by the PC
+#  - ECM network (usb0)
+#
+# Usage: usb-gadget {start|stop|attach|detach|status}
+#
+# attach/detach (re)connect the UPDATE partition to the USB drive: the
+# update scripts detach it before mounting the partition locally, so the
+# PC and the board never write it at the same time.
+
+G=/sys/kernel/config/usb_gadget/bbb
+LUN=$G/functions/mass_storage.usb0/lun.0
+
+update_dev() {
+	[ -n "$UPDATE_DEV" ] && { echo "$UPDATE_DEV"; return; }
+	blkid 2>/dev/null | grep 'LABEL="UPDATE"' | cut -d: -f1 | head -n 1
+}
+
+start() {
+	[ -d $G ] && return 0
+	[ -d /sys/kernel/config/usb_gadget ] || {
+		echo "usb-gadget: configfs not mounted" >&2
+		return 1
+	}
+
+	mkdir -p $G
+	echo 0x1d6b > $G/idVendor	# Linux Foundation
+	echo 0x0104 > $G/idProduct	# Multifunction Composite Gadget
+	echo 0x0100 > $G/bcdDevice
+	echo 0x0200 > $G/bcdUSB
+
+	mkdir -p $G/strings/0x409
+	echo "bbb-printer" > $G/strings/0x409/manufacturer
+	echo "bbb-printer recovery" > $G/strings/0x409/product
+	cat /sys/class/net/eth0/address 2>/dev/null | tr -d ':' > $G/strings/0x409/serialnumber
+
+	mkdir -p $G/configs/c.1/strings/0x409
+	echo "Recovery" > $G/configs/c.1/strings/0x409/configuration
+	echo 500 > $G/configs/c.1/MaxPower
+
+	mkdir -p $G/functions/ecm.usb0
+	ln -s $G/functions/ecm.usb0 $G/configs/c.1/
+
+	mkdir -p $G/functions/mass_storage.usb0
+	echo 1 > $G/functions/mass_storage.usb0/stall
+	echo 1 > $LUN/removable
+	echo 0 > $LUN/cdrom
+	echo 0 > $LUN/ro
+	ln -s $G/functions/mass_storage.usb0 $G/configs/c.1/
+
+	ls /sys/class/udc | head -n 1 > $G/UDC
+	attach
+}
+
+stop() {
+	[ -d $G ] || return 0
+	echo "" > $G/UDC 2>/dev/null
+	rm -f $G/configs/c.1/ecm.usb0 $G/configs/c.1/mass_storage.usb0
+	rmdir $G/configs/c.1/strings/0x409 $G/configs/c.1 \
+	      $G/functions/ecm.usb0 $G/functions/mass_storage.usb0 \
+	      $G/strings/0x409 $G 2>/dev/null
+}
+
+attach() {
+	[ -d $LUN ] || return 0
+	dev=$(update_dev)
+	if [ -z "$dev" ]; then
+		echo "usb-gadget: no UPDATE partition found, USB drive not exported" >&2
+		return 1
+	fi
+	echo "$dev" > $LUN/file
+}
+
+detach() {
+	[ -d $LUN ] || return 0
+	[ -n "$(cat $LUN/file)" ] || return 0
+	# Eject even if the PC locked the medium: the user must have
+	# safely removed the drive on the PC before running an update.
+	echo 1 > $LUN/forced_eject 2>/dev/null || echo "" > $LUN/file
+}
+
+status() {
+	if [ -d $G ]; then
+		echo "gadget: active (UDC $(cat $G/UDC))"
+		echo "USB drive: $(cat $LUN/file 2>/dev/null || echo none)"
+	else
+		echo "gadget: inactive"
+	fi
+}
+
+case "$1" in
+start|stop|attach|detach|status) "$1" ;;
+*) echo "Usage: $0 {start|stop|attach|detach|status}" >&2; exit 2 ;;
+esac
