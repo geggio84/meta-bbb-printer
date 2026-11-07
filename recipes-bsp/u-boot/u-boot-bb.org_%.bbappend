@@ -26,4 +26,5 @@ SRC_URI:append:bbb-printer = " \
     file://0016-Fix-16-bit-LCD-configuration.patch \
     file://0017-Update-pinmux-for-new-PCB-rev.0.patch \
     file://0018-Load-am335x-bbb-printer.dtb-by-default.patch \
+    file://0019-Boot-recovery-ramdisk-from-uSD-after-3-failed-boots.patch \
 "

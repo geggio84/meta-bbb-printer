@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sat, 7 Nov 2026 17:30:00 +0100
+Subject: [PATCH] Boot recovery ramdisk from uSD after 3 failed boots
+
+Enable the AM33XX RTC boot counter with a limit of 3: when the eMMC
+system fails to boot three times in a row (bootcount is reset from
+Linux once the printer software is up), run altbootcmd, which boots
+the recovery ramdisk from the uSD card.
+
+Also fall back to the recovery ramdisk when distro boot finds nothing
+bootable on eMMC, and boot the ramdisk as an initramfs (cpio.gz passed
+with its size) instead of an ext2 /dev/ram0 root, which needs the brd
+driver built in.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/configs/am335x_evm_defconfig b/configs/am335x_evm_defconfig
+--- a/configs/am335x_evm_defconfig
++++ b/configs/am335x_evm_defconfig
+@@ -17,7 +17,7 @@
+ CONFIG_SPL_LOAD_FIT=y
+ CONFIG_DISTRO_DEFAULTS=y
+ CONFIG_OF_BOARD_SETUP=y
+-CONFIG_BOOTCOMMAND="run findfdt; run init_console; run finduuid; run distro_bootcmd"
++CONFIG_BOOTCOMMAND="run findfdt; run init_console; run finduuid; run distro_bootcmd; run ramboot"
+ CONFIG_LOGLEVEL=3
+ CONFIG_SYS_CONSOLE_INFO_QUIET=y
+ CONFIG_SPL_SYS_MALLOC=y
+@@ -57,6 +57,8 @@
+ CONFIG_BOOTP_SEND_HOSTNAME=y
+ CONFIG_REGMAP=y
+ CONFIG_BOOTCOUNT_LIMIT=y
++CONFIG_BOOTCOUNT_BOOTLIMIT=3
++CONFIG_BOOTCOUNT_ALTBOOTCMD="run ramboot; run bootcmd"
+ CONFIG_SYS_BOOTCOUNT_BE=y
+ CONFIG_CLK=y
+ CONFIG_CLK_CCF=y
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -112,8 +112,6 @@
+ 			"uuid=${uuid_gpt_bootloader};" \
+ 		"name=rootfs,start=2688K,size=-,uuid=${uuid_gpt_rootfs}\0" \
+ 	"optargs=\0" \
+-	"ramroot=/dev/ram0 rw\0" \
+-	"ramrootfstype=ext2\0" \
+ 	"spiroot=/dev/mtdblock4 rw\0" \
+ 	"spirootfstype=jffs2\0" \
+ 	"spisrcaddr=0xe0000\0" \
+@@ -125,9 +123,7 @@
+ 		"rootfstype=${spirootfstype}\0" \
+ 	"ramargs=setenv bootargs console=${console} " \
+ 		"${optargs} " \
+-		"root=${ramroot} " \
+-		"rootfstype=${ramrootfstype} " \
+-		"ramdisk_size=32768\0" \
++		"rdinit=/init panic=5\0" \
+ 	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ${bootdir}/ramdisk-bbb.gz\0" \
+ 	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+ 	"loadinitrd=load mmc ${bootpart} ${initrd_addr} ${bootdir}/${initrd_file}; setenv initrd_size ${filesize}\0" \
+@@ -143,7 +139,7 @@
+ 		"setenv bootpart 0:1; " \
+ 		"run loadimage; run loadfdt; run loadramdisk; " \
+ 		"run ramargs; " \
+-		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
++		"bootz ${loadaddr} ${rdaddr}:${filesize} ${fdtaddr}\0" \
+ 	"findfdt="\
+ 		"if test $board_name = A335BONE; then " \
+ 			"setenv fdtfile am335x-bone.dtb; fi; " \
+-- 
+2.39.5
