@@ -1,0 +1,11 @@
+[Unit]
+Description=Power off on PMIC power button press
+After=systemd-udevd.service
+
+[Service]
+ExecStart=/usr/sbin/pwrbtncheck.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

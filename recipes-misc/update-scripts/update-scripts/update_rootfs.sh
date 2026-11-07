@@ -1,19 +1,15 @@
 #!/bin/sh
+# Replace the eMMC root filesystem with bbb-printer-image*.rootfs.tar.gz.
+. /usr/share/update-scripts/update-common.sh
+require_recovery
+update_open
 
-mkdir -p /media/mmcblk1p2
+tarball=$(need_update 'bbb-printer-image*.tar.gz') || exit 1
+mount_target ${EMMC}p2
+echo "Erasing eMMC rootfs..."
+rm -rf $TARGET_MNT/* $TARGET_MNT/.[!.]* 2>/dev/null
+echo "Extracting $tarball..."
+tar -xzf "$tarball" -C $TARGET_MNT || die "extracting $tarball failed"
 
-mount /dev/mmcblk1p2 /media/mmcblk1p2
-
-rm -rf /media/mmcblk1p2/*
-
-scp matteo@192.168.85.9:/tftpboot/beaglebone/bbb-printer-image.tar.gz /media/mmcblk1p2/
-
-cd /media/mmcblk1p2/
-
-tar -zxvf bbb-printer-image.tar.gz
-
-cd
-
-sync
-
-umount /media/mmcblk1p2
+reset_bootcount
+finish

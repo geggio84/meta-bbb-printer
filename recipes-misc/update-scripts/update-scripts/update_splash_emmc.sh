@@ -1,9 +1,13 @@
 #!/bin/sh
+# Update the eMMC U-Boot splash images (boot partition).
+. /usr/share/update-scripts/update-common.sh
+update_open
 
-mkdir -p /media/mmcblk1p1
-
-mount /dev/mmcblk1p1 /media/mmcblk1p1
-
-scp matteo@192.168.85.9:/tftpboot/beaglebone/\{splash.bmp,recovery_splash.bmp\} /media/mmcblk1p1/boot/
-
-umount /media/mmcblk1p1
+files=""
+for f in splash.bmp recovery_splash.bmp; do
+	[ -f $UPDATE_MNT/$f ] && files="$files $UPDATE_MNT/$f"
+done
+[ -n "$files" ] || die "no splash.bmp or recovery_splash.bmp on the USB drive"
+mount_target ${EMMC}p1
+cp $files $TARGET_MNT/ || die "copying splash failed"
+finish

@@ -1,13 +1,11 @@
 #!/bin/sh
+# Update the recovery uSD kernel and device tree (boot partition, /boot).
+. /usr/share/update-scripts/update-common.sh
+update_open
 
-mkdir -p /media/mmcblk1p1
-mkdir -p /media/mmcblk0p1
-
-mount /dev/mmcblk1p1 /media/mmcblk1p1
-mount /dev/mmcblk0p1 /media/mmcblk0p1
-
-cp /media/mmcblk1p1/boot/am335x-boneblack.dtb /media/mmcblk0p1/boot/
-cp /media/mmcblk1p1/boot/zImage /media/mmcblk0p1/boot/
-
-umount /media/mmcblk1p1
-umount /media/mmcblk0p1
+zimage=$(need_update zImage) || exit 1
+dtb=$(need_update am335x-bbb-printer.dtb) || exit 1
+mount_target ${SD}p1
+mkdir -p $TARGET_MNT/boot
+cp "$zimage" "$dtb" $TARGET_MNT/boot/ || die "copying kernel failed"
+finish
