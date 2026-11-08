@@ -20,6 +20,8 @@ PACKAGE_INSTALL = " \
     dosfstools \
     e2fsprogs-mke2fs \
     e2fsprogs-e2fsck \
+    e2fsprogs-resize2fs \
+    util-linux-sfdisk \
 "
 
 IMAGE_FEATURES = "empty-root-password allow-empty-password allow-root-login"

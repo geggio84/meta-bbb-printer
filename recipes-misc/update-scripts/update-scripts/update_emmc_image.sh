@@ -11,6 +11,9 @@ case "$img" in
 *.xz) xzcat "$img" ;;
 *) cat "$img" ;;
 esac | dd of=$EMMC bs=1M || die "writing $EMMC failed"
+sync
+
+grow_rootfs $EMMC
 
 reset_bootcount
 finish

@@ -86,6 +86,30 @@ mount_target() {
 	mount "$1" $mp || die "cannot mount $1"
 }
 
+# grow_rootfs <disk>: grow partition 2 (rootfs, the last one) to the end
+# of the disk and its ext4 filesystem to the whole partition. The wic image
+# rootfs is only as big as its content. Not fatal: the system boots anyway.
+grow_rootfs() {
+	disk=$1
+	part=${disk}p2
+	command -v sfdisk >/dev/null && command -v resize2fs >/dev/null || {
+		echo "WARNING: sfdisk/resize2fs missing, rootfs not resized" >&2
+		return 0
+	}
+	is_mounted $part && umount $part
+	echo "Growing $part to the end of $disk..."
+	echo ', +' | sfdisk -q -N 2 $disk || {
+		echo "WARNING: growing $part failed" >&2
+		return 0
+	}
+	# sfdisk makes the kernel re-read the partition table (disk not in use)
+	sleep 1
+	e2fsck -f -p $part
+	[ $? -le 1 ] || { echo "WARNING: e2fsck $part failed, not resizing" >&2; return 0; }
+	resize2fs $part || echo "WARNING: resize2fs $part failed" >&2
+	return 0
+}
+
 # Mark the eMMC system as good again: U-Boot boots it on next reset
 reset_bootcount() {
 	command -v bootcount >/dev/null && bootcount reset
