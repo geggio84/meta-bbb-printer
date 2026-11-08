@@ -82,14 +82,14 @@ IMAGE_INSTALL += "\
 #"
 
 # Storage and filesystems
-#IMAGE_INSTALL += "\
-#    e2fsprogs-tune2fs \
-#    util-linux-fdisk \
-#    util-linux-mkfs \
-#    util-linux-sfdisk \
-#    mmc-utils \
-#    nfs-utils-client \
-#"
+IMAGE_INSTALL += "\
+    e2fsprogs-tune2fs \
+    util-linux-fdisk \
+    util-linux-mkfs \
+    util-linux-sfdisk \
+    mmc-utils \
+    nfs-utils-client \
+"
 
 # Networking
 #IMAGE_INSTALL += "\
@@ -104,40 +104,40 @@ IMAGE_INSTALL += "\
 #"
 
 # Security and crypto
-#IMAGE_INSTALL += "\
-#    openssl \
-#    openssl-misc \
-#    openssl-engines \
-#    cryptodev-module \
-#"
+IMAGE_INSTALL += "\
+    openssl \
+    openssl-misc \
+    openssl-engines \
+    cryptodev-module \
+"
 
 # Audio
-#IMAGE_INSTALL += "\
-#    alsa-utils \
-#    alsa-utils-aplay \
-#    alsa-utils-alsamixer \
-#    alsa-utils-aconnect \
-#    alsa-utils-iecset \
-#    alsa-utils-midi \
-#    alsa-utils-speakertest \
-#    alsa-server \
-#    pulseaudio \
-#    pulseaudio-server \
-#    pulseaudio-misc \
-#    pulseaudio-module-loopback \
-#"
+IMAGE_INSTALL += "\
+    alsa-utils \
+    alsa-utils-aplay \
+    alsa-utils-alsamixer \
+    alsa-utils-aconnect \
+    alsa-utils-iecset \
+    alsa-utils-midi \
+    alsa-utils-speakertest \
+    alsa-server \
+    pulseaudio \
+    pulseaudio-server \
+    pulseaudio-misc \
+    pulseaudio-module-loopback \
+"
 
 # Graphics, video and multimedia
-#IMAGE_INSTALL += "\
-#    packagegroup-arago-gst \
-#    libgbm \
-#    libdrm-tests \
-#    fbset \
-#    freetype \
-#    jpeg-tools \
-#    v4l-utils \
-#    yavta \
-#"
+IMAGE_INSTALL += "\
+    packagegroup-arago-gst \
+    libgbm \
+    libdrm-tests \
+    fbset \
+    freetype \
+    jpeg-tools \
+    v4l-utils \
+    yavta \
+"
 
 # Hardware debug tools
 #IMAGE_INSTALL += "\
