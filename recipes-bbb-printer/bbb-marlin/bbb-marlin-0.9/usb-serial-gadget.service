@@ -1,0 +1,13 @@
+[Unit]
+Description=USB OTG serial gadget for Marlin (/dev/ttyGS0)
+After=sys-kernel-config.mount systemd-udevd.service
+Wants=sys-kernel-config.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/usb-serial-gadget start
+ExecStop=/usr/sbin/usb-serial-gadget stop
+
+[Install]
+WantedBy=multi-user.target

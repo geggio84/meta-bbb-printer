@@ -15,4 +15,5 @@ SRC_URI:append:bbb-printer = " \
     file://0003-Input-tps65218-pwrbutton-optionally-report-AC-power-.patch \
     file://0004-ARM-dts-am335x-add-BeagleBone-Black-3D-printer-board.patch \
     file://0005-ARM-configs-add-bbb_printer_defconfig.patch \
+    file://0006-ARM-dts-am335x-bbb-printer-add-PRU0-RPMsg-vring-inte.patch \
 "

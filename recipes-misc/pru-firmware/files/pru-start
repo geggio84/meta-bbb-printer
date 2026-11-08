@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# Load and start the PRU firmwares through remoteproc.
+#
+# Since the 5.x kernels the PRU remoteproc driver does not boot the PRUs
+# by itself (auto_boot = false): the firmware is selected and the core
+# started via /sys/class/remoteproc/remoteprocN/{firmware,state}.
+#
+#   PRU0 (4a334000.pru): am335x-pru0-fw -> PRU_stepper.out
+#   PRU1 (4a338000.pru): am335x-pru1-fw -> PRU_Halt.out
+#
+# Usage: pru-start {start|stop|status}
+
+PRUS="4a334000.pru:am335x-pru0-fw 4a338000.pru:am335x-pru1-fw"
+
+# remoteproc sysfs directory of a PRU, waiting for the driver to probe
+rproc_dir() {
+	i=0
+	while [ $i -lt 100 ]; do
+		for r in /sys/class/remoteproc/remoteproc*; do
+			[ "$(cat $r/name 2>/dev/null)" = "$1" ] && { echo $r; return 0; }
+		done
+		i=$((i + 1))
+		sleep 0.1
+	done
+	return 1
+}
+
+start() {
+	ret=0
+	for p in $PRUS; do
+		name=${p%%:*}
+		fw=${p#*:}
+		r=$(rproc_dir $name) || { echo "pru-start: $name not found (pru_rproc loaded?)" >&2; ret=1; continue; }
+		[ "$(cat $r/state)" = "running" ] && echo stop > $r/state
+		echo $fw > $r/firmware
+		if echo start > $r/state; then
+			echo "pru-start: $name running $fw"
+		else
+			echo "pru-start: failed to start $name with $fw" >&2
+			ret=1
+		fi
+	done
+	return $ret
+}
+
+stop() {
+	for p in $PRUS; do
+		r=$(rproc_dir ${p%%:*}) || continue
+		[ "$(cat $r/state)" = "running" ] && echo stop > $r/state
+	done
+	return 0
+}
+
+status() {
+	for p in $PRUS; do
+		r=$(rproc_dir ${p%%:*}) || { echo "${p%%:*}: not found"; continue; }
+		echo "${p%%:*}: $(cat $r/state) ($(cat $r/firmware))"
+	done
+}
+
+case "$1" in
+start|stop|status) "$1" ;;
+*) echo "Usage: $0 {start|stop|status}" >&2; exit 2 ;;
+esac

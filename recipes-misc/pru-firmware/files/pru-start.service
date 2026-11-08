@@ -1,0 +1,12 @@
+[Unit]
+Description=Load and start the PRU firmwares (remoteproc)
+After=systemd-modules-load.service systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/pru-start start
+ExecStop=/usr/sbin/pru-start stop
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# USB OTG serial gadget (CDC ACM) for Marlin: creates /dev/ttyGS0 on the
+# board, seen by the PC as a USB serial port (/dev/ttyACM*, COMx) where a
+# host program (Pronterface, OctoPrint, ...) sends G-code.
+#
+# Usage: usb-serial-gadget {start|stop}
+
+G=/sys/kernel/config/usb_gadget/bbb-printer
+
+start() {
+	[ -d $G ] && return 0
+	[ -d /sys/kernel/config/usb_gadget ] || mount -t configfs configfs /sys/kernel/config
+	mkdir -p $G || return 1
+	echo 0x1d6b > $G/idVendor	# Linux Foundation
+	echo 0x0104 > $G/idProduct	# Multifunction Composite Gadget
+	echo 0x0100 > $G/bcdDevice
+	echo 0x0200 > $G/bcdUSB
+
+	mkdir -p $G/strings/0x409
+	echo "bbb-printer" > $G/strings/0x409/manufacturer
+	echo "bbb-printer Marlin" > $G/strings/0x409/product
+	cat /sys/class/net/eth0/address 2>/dev/null | tr -d ':' > $G/strings/0x409/serialnumber
+
+	mkdir -p $G/configs/c.1/strings/0x409
+	echo "Marlin serial" > $G/configs/c.1/strings/0x409/configuration
+	echo 500 > $G/configs/c.1/MaxPower
+
+	mkdir -p $G/functions/acm.GS0
+	ln -s $G/functions/acm.GS0 $G/configs/c.1/
+
+	udc=$(ls /sys/class/udc | head -n 1)
+	[ -n "$udc" ] || { echo "usb-serial-gadget: no USB device controller" >&2; return 1; }
+	echo $udc > $G/UDC
+
+	# wait for the tty node
+	i=0
+	while [ ! -c /dev/ttyGS0 ] && [ $i -lt 50 ]; do
+		i=$((i + 1))
+		sleep 0.1
+	done
+	[ -c /dev/ttyGS0 ]
+}
+
+stop() {
+	[ -d $G ] || return 0
+	echo "" > $G/UDC 2>/dev/null
+	rm -f $G/configs/c.1/acm.GS0
+	rmdir $G/configs/c.1/strings/0x409 $G/configs/c.1 $G/functions/acm.GS0 \
+	      $G/strings/0x409 $G 2>/dev/null
+	return 0
+}
+
+case "$1" in
+start|stop) "$1" ;;
+*) echo "Usage: $0 {start|stop}" >&2; exit 2 ;;
+esac

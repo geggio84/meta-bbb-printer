@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sat, 7 Nov 2026 20:00:00 +0100
+Subject: [PATCH] ARM: dts: am335x-bbb-printer: add PRU0 RPMsg vring interrupt
+
+The pru_rproc driver needs a "vring" interrupt to support virtio RPMsg
+with the PRU firmware: without it the PRU fails to start as soon as the
+firmware resource table has a vdev. Route PRU-ICSS system event 16
+(PRU0 to ARM) to the ARM, as the PRU Software Support Package v6
+examples expect.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts b/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
+--- a/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
++++ b/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
+@@ -319,6 +319,17 @@
+ 	status = "okay";
+ };
+ 
++/*
++ * PRU0 runs the stepper firmware, which talks to Marlin over RPMsg: PRU0
++ * signals the ARM with PRU-ICSS system event 16, routed through INTC
++ * channel 2 to host interrupt 2 (the first one wired to the ARM).
++ */
++&pru0 {
++	interrupt-parent = <&pruss_intc>;
++	interrupts = <16 2 2>;
++	interrupt-names = "vring";
++};
++
+ &am33xx_pinmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&hdmiclk_pin_dis &clkout2_pin_dis &stepper_pins &endstop_pins
+-- 
+2.39.5

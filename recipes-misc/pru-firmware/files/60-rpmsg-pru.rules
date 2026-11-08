@@ -1,0 +1,4 @@
+# The PRU0 stepper firmware announces the RPMsg channel "rpmsg-raw" on
+# port 30: rpmsg_char creates /dev/rpmsgN for it. Give it the stable name
+# Marlin opens.
+SUBSYSTEM=="rpmsg", KERNEL=="rpmsg[0-9]*", ATTR{name}=="rpmsg-raw", ATTR{dst}=="30", SYMLINK+="rpmsg_pru30", MODE="0660"

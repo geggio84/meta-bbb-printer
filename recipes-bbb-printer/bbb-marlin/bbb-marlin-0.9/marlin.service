@@ -1,0 +1,26 @@
+[Unit]
+Description=Marlin 3D printer firmware (PRU stepper)
+# PRU0 runs the stepper firmware, Marlin talks to it through
+# /dev/rpmsg_pru30 and the PRU shared RAM (/dev/mem). G-code arrives on
+# the USB OTG serial gadget /dev/ttyGS0.
+Requires=pru-start.service usb-serial-gadget.service
+After=pru-start.service usb-serial-gadget.service
+
+[Service]
+Type=simple
+# Marlin keeps its settings in ./config
+WorkingDirectory=/home/root/marlin
+# Marlin does not exit if the PRU channel is missing: check it here
+ExecStartPre=/bin/sh -c 'i=0; while [ ! -c /dev/rpmsg_pru30 ]; do i=$((i+1)); [ $i -gt 50 ] && { echo "/dev/rpmsg_pru30 missing: PRU stepper firmware not running" >&2; exit 1; }; sleep 0.1; done'
+ExecStart=/home/root/marlin/Marlin.elf
+# Marlin stops the PRU and its child processes on SIGINT
+KillSignal=SIGINT
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=10
+
+[Install]
+# TODO: switch to RequiredBy=bbb-printer.target once the PRU firmware works
+# with the 6.12 kernel. With RequiredBy, a Marlin start failure makes the
+# boot count as failed (3 failed boots -> uSD recovery).
+WantedBy=bbb-printer.target
