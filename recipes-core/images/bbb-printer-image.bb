@@ -12,225 +12,167 @@ inherit core-image
 
 IMAGE_LINGUAS = ""
 
-ROOTFS_POSTPROCESS_COMMAND += "make_zimage_symlink_relative;"
-
 COMPATIBLE_MACHINE = "bbb-printer"
 
-IMAGE_FEATURES += "sdk_base package-management splash"
+IMAGE_FEATURES += "package-management splash"
 IMAGE_FEATURES[type] = "list"
 
-DISTRO_FEATURES_remove += " wayland"
-
-# Define our always included sdk package group as the IMAGE_INSTALL settings
-# like you would expect.
-FEATURE_PACKAGES_sdk_base = "${IMAGE_INSTALL}"
-
-TARGET_IMAGES ?= "arago-base-tisdk-image"
-
-# path to install the meta-toolchain package in the SDK
-TISDK_TOOLCHAIN_PATH ?= "linux-devkit"
-
-# meta toolchain recipe to build and package as part of the tisdk image
-TISDK_TOOLCHAIN ?= "meta-toolchain-arago"
-TOOLCHAIN_SUFFIX ?= "-sdk"
-
-# helper function for generating a set of strings based on a list.  Taken
-# from the image.bbclass.
-def string_set(iterable):
-    return ' '.join(set(iterable))
-
-# Add a dependency for the do_populate_sdk function of the TIDSK_TOOLCHAIN
-# variable which will force us to build the toolchain first so that it will be
-# available for packaging
-do_rootfs[depends] += "${@string_set('%s:do_populate_sdk' % pn for pn in (d.getVar("TISDK_TOOLCHAIN", True) or "").split())}"
-
-# Variable to specify the name of SPL
-DEPLOY_SPL_NAME ?= "MLO-${MACHINE}"
-
-U-BOOT_SRC = "${PREFERRED_PROVIDER_virtual/bootloader}-src"
-KERNEL_SRC = "${PREFERRED_PROVIDER_virtual/kernel}-src"
-
-VIRTUAL-RUNTIME_dev_manager = "udev"
-VIRTUAL-RUNTIME_init_manager = "sysvinit"
-VIRTUAL-RUNTIME_initscripts = "initscripts"
-VIRTUAL-RUNTIME_login_manager = "tinylogin shadow"
-
-# List of packages to remove from the host package.  This is usually due to
-# licensing issues and unneeded dependencies.
-HOST_CLEANUP_PACKAGES = ""
-TOOLCHAIN_CLEANUP_PACKAGES = "libgnutls-dev libgnutls-extra26 libgnutls-openssl27 libtasn1-dev"
+DISTRO_FEATURES:remove = " wayland"
 
 # Set DTB filters for each machine.  Use "unknown" by default to avoid
 # picking up DTB files for devices with not DTB support.
 DTB_FILTER = "unknown"
 DTB_FILTER_ti33x = "am335x"
 
-TISDK_TOOLCHAIN = "meta-toolchain-arago-tisdk"
 TOOLCHAIN_SUFFIX = "-tisdk"
 
-ARAGO_IMAGE_EXTRA_INSTALL ?= ""
-
+# Base system and bbb-printer applications
 IMAGE_INSTALL += "\
+    packagegroup-core-boot \
     bbb-marlin \
     update-scripts \
     pru-firmware \
-    packagegroup-core-boot \
-    bash \
     udev-extraconf \
-    ${ARAGO_IMAGE_EXTRA_INSTALL} \
-    input-utils \
-    timestamping \
-    omapconf \
-    iozone3 \
-    lmbench \
-    evtest \
-    bc \
-    libdrm-tests \
-    yavta \
-    perf \
-    v4l-utils \
-    smcroute \
-    rwmem \
-    pulseaudio-misc \
-    kselftests \
-    cpuset \
-    procps \
-    libgbm \
-    omap5-sgx-ddk-um-linux \
-    omapdrm-pvr \
+    dropbear \
+    bbb-boot-health \
+    update-scripts-pwrbtn \
+"
+
+# Qt GUI runtime (eglfs/linuxfb with tslib touchscreen input)
+IMAGE_INSTALL += "\
+    qtbase \
     qtbase-plugins \
+    qtdeclarative \
     qtdeclarative-plugins \
     qtdeclarative-qmlplugins \
-    qtlocation-plugins \
-    qtlocation-qmlplugins \
-    qtmultimedia-plugins \
-    qtmultimedia-qmlplugins \
-    qt3d-qmlplugins \
-    qtwebkit-qmlplugins \
-    qtquick1-plugins \
-    qtquick1-qmlplugins \
-    am-sysinfo \
-    gdbserver \
-    nbench-byte \
-    trace-cmd \
-    dropbear \
-    openssh-sftp-server \
-    ptpd \
-    libdrm-kms \
-    u-boot-fw-utils \
-    mmc-utils \
-    switch-config \
-    pru-icss \
-    strongswan \
-    packagegroup-core-buildessential \
-    packagegroup-core-tools-debug \
-    git \
-    wireless-tools \
-    iw \
-    softap-udhcpd-config \
-    obexd \
-    obex-client \
-    pulseaudio \
-    pulseaudio-server \
-    pulseaudio-module-loopback \
-    eventdump \
-    crda \
-    iptables \
-    uim \
-    openssl \
-    openssl-misc \
-    openssl-engines \
-    cryptodev-module \
-    packagegroup-arago-gst \
-    screenshot \
-    alsa-lib \
-    alsa-utils-aplay \
-    module-init-tools \
-    mtd-utils \
-    mtd-utils-ubifs \
-    curl \
-    initscript-telnetd \
-    ethtool \
-    thermal-init \
-    devmem2 \
-    alsa-conf \
-    alsa-conf-base \
-    alsa-server \
-    alsa-utils \
-    alsa-utils-aconnect \
-    alsa-utils-alsaconf \
-    alsa-utils-alsactl \
-    alsa-utils-alsamixer \
-    alsa-utils-amixer \
-    alsa-utils-iecset \
-    alsa-utils-midi \
-    alsa-utils-speakertest \
-    alsa-state \
+    qtsvg \
+    qtsvg-plugins \
+    liberation-fonts \
+"
+
+# Touchscreen and hardware tools
+IMAGE_INSTALL += "\
     tslib-conf \
     tslib-calibrate \
     tslib-tests \
-    ncurses \
-    ncurses-terminfo \
-    ncurses-tools \
-    e2fsprogs \
-    e2fsprogs-e2fsck \
-    e2fsprogs-mke2fs \
-    e2fsprogs-tune2fs \
-    dosfstools \
-    util-linux-fdisk \
-    util-linux-mkfs \
-    util-linux-sfdisk \
-    util-linux-fsck \
-    fbset \
-    usbutils \
+    evtest \
     i2c-tools \
-    iproute2 \
-    iproute2-tc \
-    strace \
-    zlib \
-    libpng12 \
-    jpeg \
-    jpeg-tools \
-    freetype \
-    thttpd \
-    dbus \
-    expat \
-    glib-2.0 \
-    libxml2 \
-    libpcre \
-    iptables \
-    arago-gpl-notice \
-    arago-feed-config \
-    nfs-utils-client \
 "
 
-BAD_RECOMMENDATIONS += " \
-    ti-llvm3.6-dev \
-    opencl-monitor-dev \
-    libulm-dev \
-    gdbserver-c6x-dev \
-    coreutils \
-    coreutils-dev \
-"
+# Uncomment a whole block to add that group of packages.
 
-# ltp-ddt
+# Qt optional modules
+#IMAGE_INSTALL += "\
+#    qt3d-qmlplugins \
+#    qtlocation-plugins \
+#    qtlocation-qmlplugins \
+#    qtmultimedia-plugins \
+#    qtmultimedia-qmlplugins \
+#"
 
-RDEPENDS_${PN} += "\
-    am-sysinfo-src \
-    arm-benchmarks-src \
-    oprofile-example-src \
-    omapconf-src \
-    pru-icss-src \
-    cryptodev-module-src \
-    omapdrm-pvr-src \
-    ti-tisdk-setup \
-    ti-tisdk-makefile \
-    ${U-BOOT_SRC} \
-    ${KERNEL_SRC} \
-    tisdk-install \
-    libgbm-dev \
-    omap5-sgx-ddk-um-linux-dev \
-    "
+# Shell and command-line utilities
+#IMAGE_INSTALL += "\
+#    bash \
+#    bc \
+#    procps \
+#    ncurses \
+#    ncurses-terminfo \
+#    ncurses-tools \
+#    curl \
+#"
+
+# Storage and filesystems
+#IMAGE_INSTALL += "\
+#    e2fsprogs-tune2fs \
+#    util-linux-fdisk \
+#    util-linux-mkfs \
+#    util-linux-sfdisk \
+#    mmc-utils \
+#    nfs-utils-client \
+#"
+
+# Networking
+#IMAGE_INSTALL += "\
+#    openssh-sftp-server \
+#    iptables \
+#    ethtool \
+#    softap-udhcpd-config \
+#    smcroute \
+#    ptpd \
+#    strongswan \
+#    switch-config \
+#"
+
+# Security and crypto
+#IMAGE_INSTALL += "\
+#    openssl \
+#    openssl-misc \
+#    openssl-engines \
+#    cryptodev-module \
+#"
+
+# Audio
+#IMAGE_INSTALL += "\
+#    alsa-utils \
+#    alsa-utils-aplay \
+#    alsa-utils-alsamixer \
+#    alsa-utils-aconnect \
+#    alsa-utils-iecset \
+#    alsa-utils-midi \
+#    alsa-utils-speakertest \
+#    alsa-server \
+#    pulseaudio \
+#    pulseaudio-server \
+#    pulseaudio-misc \
+#    pulseaudio-module-loopback \
+#"
+
+# Graphics, video and multimedia
+#IMAGE_INSTALL += "\
+#    packagegroup-arago-gst \
+#    libgbm \
+#    libdrm-tests \
+#    fbset \
+#    freetype \
+#    jpeg-tools \
+#    v4l-utils \
+#    yavta \
+#"
+
+# Hardware debug tools
+#IMAGE_INSTALL += "\
+#    input-utils \
+#    eventdump \
+#    devmem2 \
+#    rwmem \
+#    omapconf \
+#    pru-icss \
+#"
+
+# Development and debugging
+#IMAGE_INSTALL += "\
+#    gdbserver \
+#    strace \
+#    perf \
+#    trace-cmd \
+#    packagegroup-core-tools-debug \
+#    packagegroup-core-buildessential \
+#"
+
+# Benchmarks and tests
+#IMAGE_INSTALL += "\
+#    iozone3 \
+#    lmbench \
+#    nbench-byte \
+#    ltp-ddt \
+#"
+
+# Arago distro extras and libraries
+#IMAGE_INSTALL += "\
+#    arago-feed-config \
+#    arago-gpl-notice \
+#    libpcre \
+#"
 
 RRECOMMENDS_${PN} += "\
     kernel-modules \
