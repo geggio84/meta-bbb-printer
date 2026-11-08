@@ -71,15 +71,15 @@ IMAGE_INSTALL += "\
 #"
 
 # Shell and command-line utilities
-#IMAGE_INSTALL += "\
-#    bash \
-#    bc \
-#    procps \
-#    ncurses \
-#    ncurses-terminfo \
-#    ncurses-tools \
-#    curl \
-#"
+IMAGE_INSTALL += "\
+    bash \
+    bc \
+    procps \
+    ncurses \
+    ncurses-terminfo \
+    ncurses-tools \
+    curl \
+"
 
 # Storage and filesystems
 IMAGE_INSTALL += "\
