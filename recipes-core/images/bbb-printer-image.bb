@@ -26,6 +26,13 @@ DTB_FILTER_ti33x = "am335x"
 
 TOOLCHAIN_SUFFIX = "-tisdk"
 
+# U-Boot splash images (bbb-splash) in /boot of the wic boot partition
+IMAGE_BOOT_FILES:append = " \
+    splash.bmp;boot/splash.bmp \
+    recovery_splash.bmp;boot/recovery_splash.bmp \
+"
+do_image_wic[depends] += "bbb-splash:do_deploy"
+
 # Base system and bbb-printer applications
 IMAGE_INSTALL += "\
     packagegroup-core-boot \
