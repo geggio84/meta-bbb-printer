@@ -20,6 +20,8 @@ IMAGE_BOOT_FILES = " \
     ${KERNEL_IMAGETYPE};boot/${KERNEL_IMAGETYPE} \
     am335x-bbb-printer.dtb;boot/am335x-bbb-printer.dtb \
     ramdisk-bbb-${MACHINE}.cpio.gz;boot/ramdisk-bbb.gz \
+    splash.bmp;boot/splash.bmp \
+    recovery_splash.bmp;boot/recovery_splash.bmp \
 "
 
 inherit core-image
@@ -28,6 +30,7 @@ do_image_wic[depends] += " \
     ramdisk-bbb:do_image_complete \
     virtual/kernel:do_deploy \
     virtual/bootloader:do_deploy \
+    bbb-splash:do_deploy \
 "
 
 COMPATIBLE_MACHINE = "bbb-printer"

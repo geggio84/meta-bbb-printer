@@ -9,5 +9,6 @@ for f in splash.bmp recovery_splash.bmp; do
 done
 [ -n "$files" ] || die "no splash.bmp or recovery_splash.bmp on the USB drive"
 mount_target ${SD}p1
-cp $files $TARGET_MNT/ || die "copying splash failed"
+mkdir -p $TARGET_MNT/boot
+cp $files $TARGET_MNT/boot/ || die "copying splash failed"
 finish

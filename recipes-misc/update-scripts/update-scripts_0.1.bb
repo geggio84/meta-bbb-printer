@@ -5,7 +5,7 @@ the recovery ramdisk), and a service powering off on power button press."
 LICENSE = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc354acaac30ed4d5eefea7245"
 
-PR = "1"
+PR = "2"
 
 SRC_URI = " \
 	file://update-common.sh \

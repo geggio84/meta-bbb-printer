@@ -1,0 +1,79 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Sun, 8 Nov 2026 19:30:00 +0100
+Subject: [PATCH] Show the recovery splash on every recovery boot
+
+Show recovery_splash.bmp not only when the front button is held, but
+also when booting from uSD (SYSBOOT pins) and when the boot counter is
+over the limit (autoboot runs altbootcmd, the uSD recovery ramdisk).
+
+Load the splash image from the eMMC boot partition (${bootpart}) and,
+if it is missing, from the uSD boot partition (mmc 0:1), so the splash
+is shown also when the eMMC is empty or broken.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/board/ti/am335x/board.c b/board/ti/am335x/board.c
+--- a/board/ti/am335x/board.c
++++ b/board/ti/am335x/board.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <config.h>
++#include <bootcount.h>
+ #include <command.h>
+ #include <dm.h>
+ #include <env.h>
+@@ -820,6 +821,27 @@
+ 
+ 	return val == 0;
+ }
++
++/*
++ * Recovery boot: front button held, booting from uSD (SYSBOOT pins) or
++ * boot counter over the limit (autoboot will run altbootcmd). The boot
++ * counter is incremented later by autoboot, hence the "+ 1".
++ */
++static bool __maybe_unused recovery_boot(void)
++{
++	if (readl(&cstat->statusreg) == 0x00400338 || recovery_button_pressed())
++		return true;
++
++#if IS_ENABLED(CONFIG_BOOTCOUNT_LIMIT)
++	{
++		ulong bootlimit = env_get_ulong("bootlimit", 10, 0);
++
++		if (bootlimit && bootcount_load() + 1 > bootlimit)
++			return true;
++	}
++#endif
++	return false;
++}
+ #endif
+ 
+ #if IS_ENABLED(CONFIG_AM335X_LCD) && !defined(CONFIG_XPL_BUILD)
+@@ -891,8 +913,8 @@
+  */
+ int splash_screen_prepare(void)
+ {
+-	/* Check if front button is pressed */
+-	if (board_is_bone_lt() && recovery_button_pressed())
++	/* Recovery boot: show the recovery splash image */
++	if (board_is_bone_lt() && recovery_boot())
+ 		env_set("splashfile", "recovery_splash.bmp");
+ 
+ 	if (!env_get("load_splash")) {
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -79,7 +79,9 @@
+ /* Splash image, loaded by splash_screen_prepare() via 'load_splash' */
+ #ifdef CONFIG_SPLASH_SCREEN
+ #define SPLASH_ARGS \
+-	"load_splash=mmc rescan; load mmc ${bootpart} ${splashimage} ${bootdir}/${splashfile}\0" \
++	"load_splash=mmc rescan; " \
++		"load mmc ${bootpart} ${splashimage} ${bootdir}/${splashfile} || " \
++		"load mmc 0:1 ${splashimage} ${bootdir}/${splashfile}\0" \
+ 	"splashimage=0x8F000000\0" \
+ 	"splashfile=splash.bmp\0" \
+ 	"fdt_setup=fdt addr ${fdtaddr};" \
