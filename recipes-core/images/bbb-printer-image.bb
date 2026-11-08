@@ -3,7 +3,7 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d690"
 
-IMAGE_FSTYPES = "tar.gz"
+IMAGE_FSTYPES = "tar.gz wic.xz wic.bmap"
 
 inherit rootfs_ipk
 inherit image_types
