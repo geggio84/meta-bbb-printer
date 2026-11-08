@@ -92,16 +92,16 @@ IMAGE_INSTALL += "\
 "
 
 # Networking
-#IMAGE_INSTALL += "\
-#    openssh-sftp-server \
-#    iptables \
-#    ethtool \
-#    softap-udhcpd-config \
-#    smcroute \
-#    ptpd \
-#    strongswan \
-#    switch-config \
-#"
+IMAGE_INSTALL += "\
+    openssh-sftp-server \
+    iptables \
+    ethtool \
+    softap-udhcpd-config \
+    smcroute \
+    ptpd \
+    strongswan \
+    switch-config \
+"
 
 # Security and crypto
 IMAGE_INSTALL += "\
@@ -140,14 +140,14 @@ IMAGE_INSTALL += "\
 "
 
 # Hardware debug tools
-#IMAGE_INSTALL += "\
-#    input-utils \
-#    eventdump \
-#    devmem2 \
-#    rwmem \
-#    omapconf \
-#    pru-icss \
-#"
+IMAGE_INSTALL += "\
+    input-utils \
+    eventdump \
+    devmem2 \
+    rwmem \
+    omapconf \
+    pru-icss \
+"
 
 # Development and debugging
 #IMAGE_INSTALL += "\
