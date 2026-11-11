@@ -28,4 +28,5 @@ SRC_URI:append:bbb-printer = " \
     file://0018-Load-am335x-bbb-printer.dtb-by-default.patch \
     file://0019-Boot-recovery-ramdisk-from-uSD-after-3-failed-boots.patch \
     file://0020-Show-the-recovery-splash-on-every-recovery-boot.patch \
+    file://0021-Pull-up-the-front-panel-button-ENC_SW-input.patch \
 "

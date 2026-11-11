@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 9 Nov 2026 10:00:00 +0100
+Subject: [PATCH] Pull up the front panel button (ENC_SW) input
+
+ENC_SW (gpmc_wait0, GPIO0_30) is active low and is read at boot to
+force the recovery ramdisk. The pad was configured with the default
+internal pull-down, so with no external pull-up (bare BeagleBone, front
+panel not connected) it read as pressed and every boot went to
+recovery. Enable the internal pull-up instead.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/board/ti/am335x/mux.c b/board/ti/am335x/mux.c
+--- a/board/ti/am335x/mux.c
++++ b/board/ti/am335x/mux.c
+@@ -102,7 +102,7 @@
+ };
+ 
+ static struct module_pin_mux frontpanel_pin_mux[] = {
+-	{OFFSET(gpmc_wait0), (RXACTIVE | MODE(7))},		/* ENC_SW (gpio0_30) */
++	{OFFSET(gpmc_wait0), (RXACTIVE | PULLUP_EN | MODE(7))},	/* ENC_SW (gpio0_30), active low */
+ 	{OFFSET(gpmc_be1n), (RXACTIVE | MODE(7))},		/* ENC_A (gpio1_28) */
+ 	{OFFSET(gpmc_wpn), (RXACTIVE | MODE(7))},		/* ENC_B (gpio0_31) */
+ 	{OFFSET(gpmc_a0), (RXACTIVE | MODE(7))},		/* EXT_GPIO0 (gpio1_16) */
