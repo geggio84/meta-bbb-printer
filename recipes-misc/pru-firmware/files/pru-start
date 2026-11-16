@@ -1,22 +1,29 @@
 #!/bin/sh
 #
-# Load and start the PRU firmwares through remoteproc.
+# Load and start the PRU0 firmware through remoteproc.
 #
 # Since the 5.x kernels the PRU remoteproc driver does not boot the PRUs
 # by itself (auto_boot = false): the firmware is selected and the core
 # started via /sys/class/remoteproc/remoteprocN/{firmware,state}.
 #
 #   PRU0 (4a334000.pru): am335x-pru0-fw -> PRU_stepper.out
-#   PRU1 (4a338000.pru): am335x-pru1-fw -> PRU_Halt.out
+#
+# PRU1 is not used and not started: a PRU that is never started stays
+# halted. (Starting it with a firmware declaring an RPMsg vdev fails, as
+# PRU1 has no "vring" interrupt in the device tree.)
 #
 # Usage: pru-start {start|stop|status}
 
-PRUS="4a334000.pru:am335x-pru0-fw 4a338000.pru:am335x-pru1-fw"
+PRUS="4a334000.pru:am335x-pru0-fw"
+
+# The PRU remoteproc driver is a module loaded by udev coldplug, which can
+# take tens of seconds on a full boot: wait up to WAIT_S seconds for it.
+WAIT_S=90
 
 # remoteproc sysfs directory of a PRU, waiting for the driver to probe
 rproc_dir() {
 	i=0
-	while [ $i -lt 100 ]; do
+	while [ $i -lt $((WAIT_S * 10)) ]; do
 		for r in /sys/class/remoteproc/remoteproc*; do
 			[ "$(cat $r/name 2>/dev/null)" = "$1" ] && { echo $r; return 0; }
 		done
@@ -28,6 +35,7 @@ rproc_dir() {
 
 start() {
 	ret=0
+	modprobe -q pru_rproc 2>/dev/null
 	for p in $PRUS; do
 		name=${p%%:*}
 		fw=${p#*:}

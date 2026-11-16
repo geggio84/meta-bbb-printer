@@ -1,10 +1,12 @@
 [Unit]
-Description=Load and start the PRU firmwares (remoteproc)
+Description=Load and start the PRU0 stepper firmware (remoteproc)
 After=systemd-modules-load.service systemd-udevd.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# pru-start waits up to 90 s for the PRU remoteproc driver
+TimeoutStartSec=120
 ExecStart=/usr/sbin/pru-start start
 ExecStop=/usr/sbin/pru-start stop
 

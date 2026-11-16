@@ -1,11 +1,11 @@
-DESCRIPTION = "PRU cores firmwares and the service starting them: PRU0 runs \
-the Marlin stepper firmware (built from the Marlin PRU_stepper sources), \
-PRU1 is halted."
+DESCRIPTION = "PRU0 firmware and the service starting it: PRU0 runs the \
+Marlin stepper firmware (built from the Marlin PRU_stepper sources). PRU1 \
+is not used: never started, it stays halted."
 
 LICENSE = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc354acaac30ed4d5eefea7245"
 
-PR = "r2"
+PR = "r3"
 
 require recipes-bbb-printer/bbb-marlin/bbb-marlin-src.inc
 require recipes-ti/includes/ti-paths.inc
@@ -13,7 +13,6 @@ require recipes-ti/includes/ti-paths.inc
 SRC_URI = " \
 	${MARLIN_SRC_URI} \
 	file://0001-PRU_stepper-port-to-the-kernel-6.x-PRU-remoteproc-RPMsg.patch \
-	file://PRU_Halt.out \
 	file://pru-start \
 	file://pru-start.service \
 	file://60-rpmsg-pru.rules \
@@ -62,11 +61,9 @@ do_compile() {
 do_install() {
 	install -d ${D}${nonarch_base_libdir}/firmware
 
-	install -m 644 ${WORKDIR}/PRU_Halt.out ${D}${nonarch_base_libdir}/firmware
 	install -m 644 ${S}/PRU_stepper/gen/PRU_stepper.out ${D}${nonarch_base_libdir}/firmware
 
 	ln -sf PRU_stepper.out ${D}${nonarch_base_libdir}/firmware/am335x-pru0-fw
-	ln -sf PRU_Halt.out ${D}${nonarch_base_libdir}/firmware/am335x-pru1-fw
 
 	install -d ${D}${sbindir} ${D}${systemd_system_unitdir}
 	install -m 0755 ${WORKDIR}/pru-start ${D}${sbindir}/
