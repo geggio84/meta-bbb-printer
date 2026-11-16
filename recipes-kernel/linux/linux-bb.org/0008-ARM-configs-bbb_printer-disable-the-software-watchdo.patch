@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 16 Nov 2026 10:01:00 +0100
+Subject: [PATCH] ARM: configs: bbb_printer: disable the software watchdog
+
+softdog was built in and registered before omap_wdt, so it became
+/dev/watchdog0 and systemd used it as "hardware" watchdog. softdog does
+not reset the board when the kernel itself hangs. Disable it, so the
+OMAP hardware watchdog is /dev/watchdog0.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/arch/arm/configs/bbb_printer_defconfig b/arch/arm/configs/bbb_printer_defconfig
+index 70f8bff..44f7c7b 100644
+--- a/arch/arm/configs/bbb_printer_defconfig
++++ b/arch/arm/configs/bbb_printer_defconfig
+@@ -1362,7 +1362,7 @@ CONFIG_WATCHDOG_SYSFS=y
+ CONFIG_WATCHDOG_PRETIMEOUT_GOV=y
+ CONFIG_WATCHDOG_PRETIMEOUT_GOV_PANIC=m
+ CONFIG_WATCHDOG_PRETIMEOUT_DEFAULT_GOV_NOOP=y
+-CONFIG_SOFT_WATCHDOG=y
++# CONFIG_SOFT_WATCHDOG is not set
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_MFD_STMPE=y
+ CONFIG_MFD_TI_AM335X_TSCADC=y

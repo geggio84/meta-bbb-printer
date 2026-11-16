@@ -17,4 +17,5 @@ SRC_URI:append:bbb-printer = " \
     file://0005-ARM-configs-add-bbb_printer_defconfig.patch \
     file://0006-ARM-dts-am335x-bbb-printer-add-PRU0-RPMsg-vring-inte.patch \
     file://0007-ARM-dts-am335x-bbb-printer-disable-I2C2.patch \
+    file://0008-ARM-configs-bbb_printer-disable-the-software-watchdo.patch \
 "
