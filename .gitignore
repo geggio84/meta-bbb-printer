@@ -1,0 +1,9 @@
+# editor / IDE settings
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python bytecode (bitbake classes/lib)
+__pycache__/
+*.pyc
