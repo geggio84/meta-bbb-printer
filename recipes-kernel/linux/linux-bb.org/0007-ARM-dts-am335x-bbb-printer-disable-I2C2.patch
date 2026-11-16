@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Matteo Geromin <geromin.matteo@gmail.com>
+Date: Mon, 16 Nov 2026 10:00:00 +0100
+Subject: [PATCH] ARM: dts: am335x-bbb-printer: disable I2C2
+
+The bit-banged SPI bus uses the I2C2 pins (uart1_ctsn/uart1_rtsn) as
+chip selects SPI0_CS2/SPI0_CS1. With I2C2 enabled by
+am335x-bone-common.dtsi, spi_gpio failed to get its pins:
+
+  pin PIN95 already requested by 4819c000.i2c; cannot claim for spi_gpio
+
+and the touchscreen and stepper driver SPI devices were missing.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+diff --git a/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts b/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
+index 1881bd2..f9412f6 100644
+--- a/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
++++ b/arch/arm/boot/dts/ti/omap/am335x-bbb-printer.dts
+@@ -297,6 +297,15 @@
+ 	};
+ };
+ 
++/*
++ * The I2C2 pins (uart1_ctsn/uart1_rtsn, P9_20/P9_19) are the SPI0_CS2 and
++ * SPI0_CS1 chip selects of the bit-banged SPI bus (spi0_pins). Disable the
++ * BeagleBone I2C2 bus (cape EEPROMs) enabled by am335x-bone-common.dtsi.
++ */
++&i2c2 {
++	status = "disabled";
++};
++
+ &tscadc {
+ 	status = "okay";
+ };
